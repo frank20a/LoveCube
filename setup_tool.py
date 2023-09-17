@@ -1,6 +1,6 @@
 from serial import Serial
 from serial.tools import list_ports
-import struct, time
+import struct, time, sys
 
 
 class Tool:
@@ -23,10 +23,13 @@ class Tool:
         self.ser = Serial(list_ports.comports()[int(input("Select the serial port: ")) - 1].device, 115200, timeout=1)
         
         # Connect to the cube
-        time.sleep(1)
         while self.ser.in_waiting > 0:
             self.ser.read()
-        r, _ = self.send_cmd(0x00)
+        try:
+            r, _ = self.send_cmd(0x00)
+        except Exception as e:
+            print(f'Connection error: {e}\nPlease try again!')
+            sys.exit(1)
         if r == 0x01:
             print("Connection established!")
         else:

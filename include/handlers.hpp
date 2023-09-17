@@ -74,12 +74,11 @@ void on_config(AsyncWebServerRequest *request){
     save_config();
 
     // Restart device
-    request->redirect("/restart");
+    request->send(LittleFS, "/pages/restart.html", "text/html", false);
 }
 
 void on_restart(AsyncWebServerRequest *request) {
-    request->send(LittleFS, "/pages/restart.html", "text/html", false);
-    delay(20000);
+    request->send(200, "text/plain", "Restarting...");
     ESP.restart();
 }
 

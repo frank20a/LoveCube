@@ -77,7 +77,7 @@ void loop() {
   if (millis() - last_time > 1000) {
     last_time = millis();
     state = !state;
-    digitalWrite(HW_LED, state && !config.configured);
+    digitalWrite(HW_LED, !(state && config.configured));
   }
 
   // Check for serial command
@@ -88,6 +88,7 @@ void loop() {
 void handle_serial_cmd() {
   if (!Serial.available()) return;
 
+  bool restart_flag = false;
   SER_CMD cmd;
   SER_RESP resp = {0};
 
@@ -110,8 +111,7 @@ void handle_serial_cmd() {
         resp.resp = 0xFF;       // Error
       } else{
         resp.resp = 0x01;       // Acknowledge
-        delay(5000);
-        ESP.restart();
+        restart_flag = true;
       }
   } else if (cmd.cmd == 0x02) {     // Get UID
     resp.resp = 0x01;           // Acknowledge
@@ -135,6 +135,11 @@ void handle_serial_cmd() {
   for(int i = 0; i < 6; i++) resp.hash += resp.data[i];
   Serial.write((char*)&resp, sizeof(resp));
   Serial.flush();
+
+  if (restart_flag) {
+    delay(1000);
+    ESP.restart();
+  }
 }
 
 bool load_config() {

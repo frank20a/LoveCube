@@ -4,13 +4,16 @@
     </head>
     <body>
         <center>
-            <h2 style="margin-top: 20%;">Your devices will restart in <span id="countdown">20</span> seconds!</h2>
+            <h2 style="margin-top: 20%;">Your devices will restart in <span id="countdown">5</span> seconds!</h2>
         </center>
 
         <script>
             var span = document.getElementById("countdown");
-            var count = 20;
-            setInterval(function(){ span.innerHTML = max(count--, 0); }, 1000);
+            var count = 4;
+            setInterval(function(){ 
+                span.innerHTML = max(count--, 0);
+                if (count == 0) window.location.replace("/restart");
+            }, 1000);
         </script>
     </body>
 </html>
