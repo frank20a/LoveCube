@@ -1,0 +1,50 @@
+<html>
+    <head>
+        <title>LoveCube Configuration page</title>
+        <link rel="stylesheet" type="text/css" href="styles/index.css">
+    </head>
+    <body>
+        <center>
+            <h1>LoveCube Configuration page</h1>
+            <p>Here you can configure your LoveCube</p>
+            <form action="/config" method="post">
+                <table>
+                    <tr>
+                        <td><label for="ssid">WiFi SSID: </label></td>
+                        <td><input type="text" name="ssid" id="ssid" value="%ssid%" maxlength="%max_ssid%"/></td>
+                    </tr>
+                    <tr>
+                        <td><label for="password">WiFi Password: </label></td>
+                        <td><input id="pass_txt" type="password" name="password" id="password" value="%pass%" maxlength="%max_pass%"/> <br>
+                        <input type="checkbox" onclick="show_pass()">Show Password </td>
+                    </tr>
+                    <tr>
+                        <td><label for="username">Username: </label></td>
+                        <td><input type="text" name="username" id="username" value="%user%" maxlength="%max_usr%"/></td>
+                    </tr>
+                    <tr>
+                        <td><label for="key">Authentication Key: </label></td>
+                        <td><input type="text" name="key" id="key" value="%key%" maxlength="%max_key%" minlength="%max_key%"/></td>
+                    </tr>
+                </table>
+                <input id='submit' type="submit" value="Save" />
+            </form>
+        </center>
+
+        <footer>
+            <p>LoveCube by <a href="https://github.com/frank20a">Frank Fourlas</a></p>
+            <p>Your LoveCube's UID is <span id="uid">%uid%</span></p>
+        </footer>
+
+        <script>
+            function show_pass() {
+                var x = document.getElementById("pass_txt");
+                if (x.type === "password") {
+                    x.type = "text";
+                } else {
+                    x.type = "password";
+                }
+            }
+        </script>
+    </body>
+</html>
