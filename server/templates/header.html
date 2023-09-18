@@ -1,0 +1,19 @@
+<header class="column-container">
+    
+    <div class="third-column" {% if debug %} style="background-color: blue;" {% endif %} >
+        <h1 class="hf-title">LoveCube</h1>
+    </div>
+
+    <div class="twothird-column right-align-div" {% if debug %} style="background-color: red;" {% endif %}>
+        <div class="vertical-align-div" id="account-div" {% if debug %} style="background-color: cyan;" {% endif %}>
+            {% if session is not none %}
+                <p id="welcome">Welcome, <b>{{ session.name }}</b>!</p>
+                <p><a class="header-links" href="/logout">Logout</a></p>
+            {% else %}
+                <p><a class="header-links" href="/login">Login</a></p>
+                <p><a class="header-links" href="/register">Register</a></p>
+            {% endif %}
+        </div>
+    </div>
+
+</header>

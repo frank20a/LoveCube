@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from app import db
 
 
-class Users(db.Model):
+class User(db.Model):
     __tablename__ = 'Users'
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(db.String(10), index=True, unique=True, nullable=False)
@@ -13,7 +13,7 @@ class Users(db.Model):
     salt: Mapped[str] = mapped_column(db.String(16), nullable=False)
 
 
-class Devices(db.Model):
+class Device(db.Model):
     __tablename__ = 'Devices'
     id: Mapped[str] = mapped_column(db.String(6), primary_key=True, index=True)
     owner: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('Users.id'), nullable=False, index=True)
@@ -25,7 +25,7 @@ class Devices(db.Model):
     btn1_action: Mapped[str] = mapped_column(db.String(64), default='')
     
 
-class Pairs(db.Model):
+class Pair(db.Model):
     __tablename__ = 'Pairs'
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True, autoincrement=True)
     user: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('Users.id'), nullable=False, index=True)
@@ -34,7 +34,7 @@ class Pairs(db.Model):
     approved: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=False)
 
 
-class AuthKeys(db.Model):
+class AuthKey(db.Model):
     __tablename__ = 'AuthKeys'
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True, autoincrement=True)
     user: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('Users.id'), nullable=False, index=True)

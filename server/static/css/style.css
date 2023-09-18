@@ -1,11 +1,159 @@
-body {
-    margin-left: 15%;
-    margin-right: 15%;
-    margin-top: 10%;
+html, body {
+    font-family: 'Roboto';
+    font-size: 20px;
+    background-color: #fffff0;
+    height: 100%;
+    margin: 0;
+}
+
+#main {
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+}
+
+#content {
+    flex: 1 0 auto;
+    margin: 5%;
+    margin-top: 100px;
+}
+
+header {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background-color: #fff0d0;
+}
+
+footer {
+    flex: 0 1 auto;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    margin: 0;
+    background-color: #fff0d0;
+}
+
+#account-div p {
+    display: inline;
+}
+
+#welcome {
+    margin: 0 20px 0 0;
+    font-size: 24px;
+}
+
+.error {
+    color: red;
+    font-weight: bold;
+    font-size: 18px;
+    border: 1px solid #fffff0;
+}
+
+label.login-form-element {
+    margin-right: 10px;
+}
+
+table.login-form{
+    border-spacing: 0 1.5em;
+}
+
+input.login-form-element, button.login-form-element {
+    background-color: #fffff0;
     font-size: 20px;
 }
 
-.btns {
-    margin-top: 15px;
-    margin-bottom: 15px;
+input.login-form-element.text-input {
+    border: 0;
+    border-bottom: 2px solid black;
+    size: 100%;
+    outline: none;
+}
+
+input:focus.login-form-element.text-input {
+    border-bottom: 4px solid black;
+}
+
+input.login-form-element.btn-input, button.login-form-element {
+    border: 2px solid #fff0d0;
+    border-radius: 10px;
+    font-size: 20px;
+    padding: 5px;
+}
+
+input.login-form-element.btn-input:hover, button.login-form-element:hover {
+    background-color: #fff0d0;
+    cursor: grab;
+}
+
+a:link, a:visited {
+    color: black;
+    text-decoration: none;
+}
+
+a:hover, a:active {
+    font-weight: bold;
+}
+
+.header-links {
+    margin: 0 20px 0 0;
+    font-size: 24px;
+}
+
+.hf-title {
+    margin: 0;
+    margin-left: 20px;
+}
+
+.footnote-credit {
+    font-size: 15px;
+    line-height: 17px;
+}
+
+.column-container {
+    display: flex;
+}
+
+.half-column {
+    flex: 50%;
+    margin: 10px;
+}
+
+.third-column {
+    flex: 33.33%;
+    margin: 10px;
+}
+
+.quarter-column {
+    flex: 25%;
+    margin: 10px;
+}
+
+.twothird-column {
+    flex: 66.66%;
+    margin: 10px;
+}
+
+.threequarter-column {
+    flex: 75%;
+    margin: 10px;
+}
+
+.right-align-div {
+    display: flex;
+    justify-content: flex-end
+}
+
+.bottom-align-div {
+    display: flex;
+    align-items: flex-end;
+}
+
+.vertical-align-div {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
 }

@@ -4,6 +4,9 @@ from flask_sqlalchemy import SQLAlchemy
 import os
 
 
+from .session_key import SessionKey
+
+
 # Get environment variables
 online_flag = bool(int(os.environ.get('ONLINE') or False))
 db_host = os.environ.get('DB_HOST') or 'localhost'
@@ -16,13 +19,14 @@ path = '/home/frank20a/LoveCube/server' if online_flag else os.getcwd()
 # Create Flask app
 app = Flask(
     __name__,
-    static_folder=os.path.join(path, 'static'),
-    template_folder=os.path.join(path, 'templates')
+    static_folder=os.path.join(path, 'server/static'),
+    template_folder=os.path.join(path, 'server/templates')
 )
-app.config.from_object(__name__)
 
 # Create session
-SESSION_TYPE = 'redis'
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
+app.config['SECRET_KEY'] = os.environ.get('SESSION_SECRET_KEY') if online_flag else 'tralalalala123'
 Session(app)
 
 # Create database

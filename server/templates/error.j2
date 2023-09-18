@@ -1,0 +1,9 @@
+{% if error == 1 %}
+    <p class="error">Username not found in database...</p>
+{% elif error == 2 %}
+    <p class="error">Wrong password...</p>
+{% elif error == 3 %}
+    <p class="error">User already exists...</p>
+{% elif error == 4 %}
+    <p class="error">E-Mail already in use...</p>
+{% endif %} <br><br>

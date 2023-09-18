@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% include 'head.html' %}
+        <title>Login</title>
+
+        <script>
+            function show_pass() { document.getElementById('password').type = 'text'; }
+            function hide_pass() { document.getElementById('password').type = 'password'; }
+        </script>
+    </head>
+    <body>
+        {% include 'header.html' %}
+        
+        <div id="main">
+            <div id="content">
+            <center>
+
+                <h1>Register</h1>
+                {% include 'error.j2' %}
+                
+                <form class="login-form" action="/register" method="post">
+                    <table class="login-form">
+                        <tr class="login-form">
+                            <td><label class="login-form-element" for="username">Username: </label></td>
+                            <td><input class="login-form-element text-input" type="text" name="username" id="username" placeholder="kylo_renia" maxlength="10" minlength="4" size="40"/></td>
+                        </tr>
+                        <tr class="login-form">
+                            <td><label class="login-form-element" for="name">Full Name: </label></td>
+                            <td><input class="login-form-element text-input" type="text" name="name" id="name" placeholder="Renouko Sagapao" maxlength="64" minlength="4" size="40"/></td>
+                        </tr>
+                        <tr class="login-form">
+                            <td><label class="login-form-element" for="email">E-Mail: </label></td>
+                            <td><input class="login-form-element text-input" type="email" name="email" id="email" placeholder="renouko2002@lovecube.com" maxlength="64" minlength="6" size="40"/></td>
+                        </tr>
+                        <tr class="login-form">
+                            <td><label class="login-form-element text-input" for="password">Password: </label></td>
+                            <td>
+                                <input class="login-form-element text-input" type="password" name="password" id="password" placeholder="password" maxlength="32" minlength="8" size="36"/>
+                                <button class="login-form-element" type="button" onmousedown="show_pass()" onmouseup="hide_pass()">👀</button>
+                            </td>
+                        </tr>
+                    </table>
+                    <input class="login-form-element btn-input" type="submit" value="Register"/>
+                </form>
+
+            </center>
+            </div>
+
+            {% include 'footer.html' %}
+        </div>
+
+    </body> 
+</html>
