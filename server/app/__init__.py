@@ -13,7 +13,7 @@ db_host = os.environ.get('DB_HOST') or 'localhost'
 db_port = int(os.environ.get('DB_PORT') or 3306)
 db_user = os.environ.get('DB_USER') or 'root'
 db_pass = os.environ.get('DB_PASS') or 'root'
-db_name = os.environ.get('USERS_DB') or 'lovecube_db'
+db_name = os.environ.get('DB_NAME') or 'lovecube_db'
 path = '/home/frank20a/LoveCube/server' if online_flag else os.getcwd()
 
 # Create Flask app
@@ -30,5 +30,6 @@ app.config['SECRET_KEY'] = os.environ.get('SESSION_SECRET_KEY') if online_flag e
 Session(app)
 
 # Create database
+
 app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
 db = SQLAlchemy(app)
