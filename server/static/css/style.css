@@ -1,7 +1,12 @@
+:root {
+    --back-color: #fffff0;
+    --bold-color: #fff0d0;
+}
+
 html, body {
     font-family: 'Roboto';
     font-size: 20px;
-    background-color: #fffff0;
+    background-color: var(--back-color);
     height: 100%;
     margin: 0;
 }
@@ -23,7 +28,7 @@ header {
     left: 0;
     top: 0;
     width: 100%;
-    background-color: #fff0d0;
+    background-color: var(--bold-color);
 }
 
 footer {
@@ -32,7 +37,18 @@ footer {
     bottom: 0;
     width: 100%;
     margin: 0;
-    background-color: #fff0d0;
+    background-color: var(--bold-color);
+}
+
+a.main-menu {
+    font-size: 36px;
+}
+
+table.main-list, th.main-list, td.main-list {
+    border: 3px solid var(--bold-color);
+    border-collapse: collapse;
+    padding: 0 15px 5px;
+    text-align: center;
 }
 
 #account-div p {
@@ -48,7 +64,7 @@ footer {
     color: red;
     font-weight: bold;
     font-size: 18px;
-    border: 1px solid #fffff0;
+    border: 1px solid var(--back-color);
 }
 
 label.login-form-element {
@@ -60,7 +76,7 @@ table.login-form{
 }
 
 input.login-form-element, button.login-form-element {
-    background-color: #fffff0;
+    background-color: var(--back-color);
     font-size: 20px;
 }
 
@@ -76,14 +92,14 @@ input:focus.login-form-element.text-input {
 }
 
 input.login-form-element.btn-input, button.login-form-element {
-    border: 2px solid #fff0d0;
+    border: 2px solid var(--bold-color);
     border-radius: 10px;
     font-size: 20px;
     padding: 5px;
 }
 
 input.login-form-element.btn-input:hover, button.login-form-element:hover {
-    background-color: #fff0d0;
+    background-color: var(--bold-color);
     cursor: grab;
 }
 

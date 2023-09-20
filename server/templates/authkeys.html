@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% include 'head.html' %}
+        <title>LoveCube</title>
+    </head>
+    <body>
+        {% include 'header.html' %}
+        
+        <div id="main">
+            <div id="content">
+                <center>
+                    <table class="main-list">
+                        <tr>
+                            <th class="main-list">API Authentication Key</th>
+                            <th>Registered Device</th>
+                            <th>Operations</th>
+                        </tr>
+                        <tr>
+                            <td class="main-list">********-****-****-****-************</td>
+                            <td class="main-list">
+                                <!-- {% if devices|length > 0 %} -->
+                                    <!-- <select name="device-list" id="device-list">
+                                        {% for device in devices %}
+                                            <option value="{{ device.id }}">{% if device.nickname is not none %} {{ device.nickname }} {% else %} {{ device.id }} {% endif %}</option>
+                                        {% endfor %}
+                                    </select> -->
+                                <!-- {% else %}
+                                    <a href="{{ url_for('devices') }}">Register a new device</a>
+                                {% endif %} -->
+                                <input type="text" name="device-id" id="device-id" placeholder="abc123" maxlength="6" size="6"/>
+                            </td>
+                            <td>
+                                <button onclick="fetch('/api/v1/register-api-key/{{session.personal_key}}/' + document.getElementById('device-list').value)
+                                    .then((response) => response.json())
+                                    .then((json) => console.log(json))
+                                    .then((json) => {if (json['error'] != 0) window.alert(json['error_msg']); else window.location.reload(); })
+                                ">Create new API key</button>
+                            </td>
+                        </tr>
+                        {% for key in authkeys %}
+                        <tr {% if key.is_user_key %} style="background-color: lightgreen;" {% endif %}>
+                            <td class="main-list">{{ key.key[:9] }}{{ (key.key|length - 9) * "*" }}</td>
+                            <td class="main-list">{% if key.is_user_key %} <b style="color: red">PERSONAL KEY</b> {% else %}  {{ key.device }} {% endif %}</td>
+                            <td class="main-list">
+                                <button onclick="fetch('/api/v1/unregister-api-key/{{session.personal_key}}/{{key.key}}')
+                                    .then((response) => response.json())
+                                    .then((json) => console.log(json))
+                                    .then((json) => {if (json['error'] != 0) window.alert(json['error_msg']); else window.location.reload(); })
+                                ">Delete</button>
+                                <button onclick="window.alert('{{key.key}}')">Show Key</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                    </table>
+                </center>
+            </div>
+
+            {% include 'footer.html' %}
+        </div>
+
+    </body> 
+</html>

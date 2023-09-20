@@ -12,6 +12,17 @@
                 <center>
                     {% if session is not none %}
                         <h1>Thank you for choosing LoveCube for your gf/bf-nodding needs!</h1>
+                        <div class="column-container" style="margin: 15px; margin-top: 12%">
+                            <div class="third-column" {% if debug %} style="background-color: red;" {% endif %}>
+                                <center> <a class="main-menu" href="/devices">My LoveCube Devices</a> </center>
+                            </div>
+                            <div class="third-column" {% if debug %} style="background-color: green;" {% endif %}>
+                                <center> <a class="main-menu" href="/pairs">My LoveCube Pairs</a> </center>
+                            </div>
+                            <div class="third-column" {% if debug %} style="background-color: blue;" {% endif %}>
+                                <center> <a class="main-menu" href="/authkeys">My LoveCube AuthKeys</a> </center>
+                            </div>
+                        </div>
                     {% else %}
                         <h1>Get you LoveCube today!</h1>
                         <h4>It's fucking awsome...</h4>
