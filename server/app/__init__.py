@@ -14,13 +14,13 @@ db_port = int(os.environ.get('DB_PORT') or 3306)
 db_user = os.environ.get('DB_USER') or 'root'
 db_pass = os.environ.get('DB_PASS') or 'root'
 db_name = os.environ.get('DB_NAME') or 'lovecube_db'
-path = '/home/frank20a/LoveCube/server' if online_flag else os.getcwd()
+path = '/home/frank20a/LoveCube/server' if online_flag else os.path.join(os.getcwd(), 'server')
 
 # Create Flask app
 app = Flask(
     __name__,
-    static_folder=os.path.join(path, 'server/static'),
-    template_folder=os.path.join(path, 'server/templates')
+    static_folder=os.path.join(path, 'static'),
+    template_folder=os.path.join(path, 'templates')
 )
 
 # Create session
