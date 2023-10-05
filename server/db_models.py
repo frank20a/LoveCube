@@ -9,7 +9,6 @@ class User(db.Model):
     username: Mapped[str] = mapped_column(db.String(10), index=True, unique=True, nullable=False)
     name: Mapped[str] = mapped_column(db.String(64), nullable=False)
     email: Mapped[str] = mapped_column(db.String(64), unique=True, nullable=False)
-    personal_key: Mapped[str] = mapped_column(db.String(64), nullable=False)
     hash: Mapped[str] = mapped_column(db.String(64), nullable=False)
     salt: Mapped[str] = mapped_column(db.String(16), nullable=False)
 
@@ -22,9 +21,10 @@ class Device(db.Model):
     bat_chrg_flag: Mapped[bool] = mapped_column(db.Boolean, nullable=True)
     bat_stby_flag: Mapped[bool] = mapped_column(db.Boolean, nullable=True)
     cmd: Mapped[int] = mapped_column(db.Integer, nullable=False, default=0)
-    cmd_exp: Mapped[datetime] = mapped_column(db.DateTime, nullable=False, default=lambda: datetime.utcnow() + timedelta(minutes=5))
+    cmd_exp: Mapped[datetime] = mapped_column(db.DateTime, nullable=False, default=lambda: datetime.utcnow())
     btn1_action: Mapped[str] = mapped_column(db.String(64), nullable=False, default='')
     btn2_action: Mapped[str] = mapped_column(db.String(64), nullable=False, default='')
+    last_ping: Mapped[datetime] = mapped_column(db.DateTime, nullable=False, default=lambda: datetime.fromtimestamp(0))
     
 
 class Pair(db.Model):

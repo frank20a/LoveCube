@@ -6,4 +6,22 @@
     <p class="error">User already exists...</p>
 {% elif error == 4 %}
     <p class="error">E-Mail already in use...</p>
+{% elif error == 5 %}
+    <p class="error">You have not registered any devices yet. Use the form below to register your new device and get an Authentication Key for it...</p>
+{% elif error == 6 %}
+    <p class="error">No device ID provided...</p>
+{% elif error == 7 %}
+    <p class="error">The device you requested is not registered with the logged in user...</p>
+{% elif error == 8 %}
+    <p class="error">Device does not exist...</p>
+{% elif error == 9 %}
+    <p class="error">Device is already paired...</p>
+{% elif error == 10 %}
+    <p class="error">Pair request not found...</p>
+{% elif error == 11 %}
+    <p class="error">This pair request is not about you...</p>
+{% elif error == 12 %}
+    <p class="error">You cannot pair with your own device...</p>
+{% elif error == 13 %}
+    <p class="error">Incorrect operation...</p>
 {% endif %} <br><br>

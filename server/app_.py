@@ -19,9 +19,11 @@ def _login(username, password):
     if user is None:
         return 1
     
+    user_key = AuthKey.query.filter_by(user=user.id, is_user_key=True).first()
+    
     if user.hash == gen_hash(password, user.salt, user.username):
         session['session_key'] = str(uuid4())
-        sessions[session['session_key']] = SessionKey(user.id, user.name, user.email, user.personal_key)
+        sessions[session['session_key']] = SessionKey(user.id, user.name, user.email, user_key.key)
         return 0
     
     return 2
@@ -40,14 +42,13 @@ def _register(username, password, name, email):
     user.username = username
     user.name = name
     user.email = email
-    user.personal_key = str(uuid4())
     user.salt = ''.join([chr(randint(33, 125)) for _ in range(16)])
     user.hash = gen_hash(password, user.salt, user.username)
     db.session.add(user)
     db.session.commit()
     
     personal_key = AuthKey()
-    personal_key.key = user.personal_key
+    personal_key.key = str(uuid4())
     personal_key.user = user.id
     personal_key.is_user_key = True
     db.session.add(personal_key)
@@ -124,18 +125,50 @@ def logout():
     session.pop('session_key', None)
     return redirect(url_for('index'))
 
-@app.route('/devices')
+@app.route('/devices', methods=['GET', 'POST'])
 def devices():
     if not check_session():
-        return redirect(url_for('login'))
+        return redirect(url_for('login', next='devices'))
     
-    devices = Device.query.filter_by(owner=sessions[session['session_key']].id).all()
-    return render_template(
-        'devices.html',
-        session=sessions[session['session_key']],
-        debug=DEBUG,
-        devices=devices
-    )
+    if request.method == 'GET':
+        devices = Device.query.filter_by(owner=sessions[session['session_key']].user).all()
+        _pairs = Pair.query.filter_by(user=sessions[session['session_key']].user).all()
+        pairs = [Device.query.filter_by(id=_pair.device).first() for _pair in _pairs]
+        
+        if len(devices) == 0:
+            return redirect(url_for('authkeys', error=5))
+        else:
+            return render_template(
+                'devices.html',
+                session=sessions[session['session_key']],
+                error=request.args.get('error', 0, int),
+                debug=DEBUG,
+                devices=devices,
+                pairs=pairs,
+                cmd_options=[
+                    'Rainbow',
+                    'Pulse Red',
+                    'Pulse Green',
+                    'Pulse Blue',
+                ]
+            )
+    
+    if request.method == 'POST':
+        _device = Device.query.filter_by(id=request.form['device_id']).first()
+        
+        if _device is None:
+            return redirect(url_for('devices', error=6))
+        if _device.owner != sessions[session['session_key']].user:
+            return redirect(url_for('devices', error=7))
+        
+        if len(request.form['nickname']) > 0:
+            _device.nickname = request.form['nickname']
+        if 'btn1_action_target' in request.form:
+            _device.btn1_action = f"{request.form['btn1_action_target']}_{request.form['btn1_action_cmd']}"
+            _device.btn2_action = f"{request.form['btn2_action_target']}_{request.form['btn2_action_cmd']}"
+        
+        db.session.commit()
+        return redirect(url_for('devices'))
 
 @app.route('/authkeys')
 def authkeys():
@@ -149,11 +182,91 @@ def authkeys():
     return render_template(
         'authkeys.html',
         session=sessions[session['session_key']],
+        error=request.args.get('error', 0, int),
         debug=DEBUG,
-        authkeys=authkeys
+        authkeys=authkeys,
+        devices=devices
     )
 
+@app.route('/pairs', methods=['GET', 'POST'])
+def pairs():
+    if not check_session():
+        return redirect(url_for('login', next='pairs'))
+    
+    if request.method == 'GET':
+        devices_ = [d.id for d in Device.query.filter_by(owner=sessions[session['session_key']].user).all()]
+        return render_template(
+            'pairs.html',
+            session=sessions[session['session_key']],
+            error=request.args.get('error', 0, int),
+            debug=DEBUG,
+            pairs=[
+                {
+                    'id': pair.id,
+                    'device': Device.query.filter_by(id=pair.device).first(),
+                    'approved': pair.approved
+                } for pair in Pair.query.filter_by(user=sessions[session['session_key']].user).all()
+            ],
+            requests=[
+                {
+                    'id': pair.id,
+                    'user': User.query.filter_by(id=pair.user).first().username,
+                    'device': Device.query.filter_by(id=pair.device).first(),
+                    'created': pair.created.strftime('%d/%m/%Y'),
+                    'approved': pair.approved
+                } for pair in Pair.query.filter(Pair.device.in_(devices_)).all()
+            ]
+        )
+        
+    if request.method == 'POST':
+        if request.form['operation'] == 'request':
+            device_ = Device.query.filter_by(id=request.form['device_id']).first()
+            if device_ is None:
+                return redirect(url_for('pairs', error=8))
+            if device_.owner == sessions[session['session_key']].user:
+                return redirect(url_for('pairs', error=12))
+            
+            request_ = Pair.query.filter_by(device=request.form['device_id']).first()
+            if request_ is not None and request_.approved:
+                return redirect(url_for('pairs', error=9))
+            
+            request_ = Pair()
+            request_.user = sessions[session['session_key']].user
+            request_.device = request.form['device_id']
+            db.session.add(request_)
+            db.session.commit()
 
+        elif request.form['operation'] == 'delete':
+            request_ = Pair.query.filter_by(id=request.form['pair_id']).first()
+            if request_ is None:
+                return redirect(url_for('pairs', error=10))
+            
+            if request_.user != sessions[session['session_key']].user:
+                device_ = Device.query.filter_by(id=request_.device).first()
+                if device_.owner != sessions[session['session_key']].user:
+                    return redirect(url_for('pairs', error=11))
+            
+            db.session.delete(request_)
+            db.session.commit()
+        
+            return redirect(url_for('pairs'))
+        
+        elif request.form['operation'] == 'accept':
+            request_ = Pair.query.filter_by(id=request.form['pair_id']).first()
+            if request_ is None:
+                return redirect(url_for('pairs', error=10))
+            
+            device_ = Device.query.filter_by(id=request_.device).first()
+            if device_.owner != sessions[session['session_key']].user:
+                return redirect(url_for('pairs', error=11))
+                
+            request_.approved = True
+            db.session.commit()
+        
+        else:
+            return redirect(url_for('pairs', error=13))
+            
+        return redirect(url_for('pairs'))
 
 # API
 # TODO: Implement
@@ -194,6 +307,7 @@ def state(api_key: str, device_id: str):
 def register_api_key(api_key: str, device_id: str):
     resp = {'error': 0}
     
+    device = Device.query.filter_by(id=device_id).first()
     user_key = AuthKey.query.filter_by(key=api_key).first()
     if user_key is None:
         resp['error'] = 1
@@ -201,9 +315,37 @@ def register_api_key(api_key: str, device_id: str):
     elif not user_key.is_user_key:
         resp['error'] = 2
         resp['error_msg'] = 'API key is not a user key'
+    elif device is not None and device.owner != user_key.user:
+        if device.last_ping + timedelta(days=365) < datetime.utcnow():
+            device.owner = user_key.user
+            db.session.commit()
+            
+            keys_ = AuthKey.query.filter_by(device=device_id).all()
+            for key_ in keys_:
+                db.session.delete(key_)
+            db.session.commit()
+            
+            new_key = AuthKey()
+            new_key.user = user_key.user
+            new_key.device = device_id
+            new_key.key = str(uuid4())
+            db.session.add(new_key)
+            db.session.commit()
+            resp['key'] = new_key.key
+        else:
+            resp['error'] = 3
+            resp['error_msg'] = 'Device already registered to user'
     else:
+        if device is None:
+            device = Device()
+            device.id = device_id
+            device.owner = user_key.user
+            db.session.add(device)
+            db.session.commit()
+        
         new_key = AuthKey()
         new_key.user = user_key.user
+        new_key.device = device_id
         new_key.key = str(uuid4())
         db.session.add(new_key)
         db.session.commit()
@@ -244,34 +386,6 @@ def unregister_api_key(user_api_key: str, target_api_key):
 def get_user_info(api_key: str):
     pass
 
-@app.route('/api/v1/register-device/<api_key>/<int:user_id>/<device_id>', methods=['GET'])
-def register_device(api_key: str, user_id: int, device_id: str):
-    resp = {'error': 0}
-    
-    _api_key = AuthKey.query.filter_by(key=api_key).first()
-    _user = User.query.filter_by(id=user_id).first()
-    
-    if _api_key is None:
-        resp['error'] = 1
-        resp['error_msg'] = 'Invalid API key'
-    if _user is None:
-        resp['error'] = 2
-        resp['error_msg'] = 'Invalid user ID'
-    elif _api_key.device != device_id:
-        resp['error'] = 3
-        resp['error_msg'] = 'API key does not match device'
-    elif user_id != _api_key.user:
-        resp['error'] = 4
-        resp['error_msg'] = 'User ID does not match API key'
-    else:
-        device = Device()
-        device.id = device_id
-        device.owner = user_id
-        db.session.add(device)
-        db.session.commit()
-    
-    return jsonify(resp)
-
 @app.route('/api/v1/unregister-device/<api_key>/<device_id>', methods=['GET'])
 def unregister_device(api_key: str, device_id: str):
     resp = {'error': 0}
@@ -285,9 +399,9 @@ def unregister_device(api_key: str, device_id: str):
     elif _device is None:
         resp['error'] = 2
         resp['error_msg'] = 'Invalid device ID'
-    elif _api_key.device != device_id:
+    elif not _api_key.is_user_key:
         resp['error'] = 3
-        resp['error_msg'] = 'API key does not match device'
+        resp['error_msg'] = 'API key is not user key'
     elif _device.owner != _api_key.user:
         resp['error'] = 4
         resp['error_msg'] = 'User does not own device'

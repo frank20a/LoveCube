@@ -103,6 +103,32 @@ input.login-form-element.btn-input:hover, button.login-form-element:hover {
     cursor: grab;
 }
 
+.form-button {
+    width: 100%;
+    border-radius: 1px;
+    border-width: 2px;
+    font-weight: bold;
+}
+
+.accept-button {
+    background-color: rgb(210, 230, 210);
+    border-color: rgb(200, 220, 200);
+    color: green;
+}
+.accept-button:hover {
+    background-color: rgb(200, 220, 200);
+}
+
+.reject-button {
+    background-color: rgb(230, 210, 210);
+    border-color: rgb(220, 200, 200);
+    color: red;
+}
+
+.reject-button:hover {
+    background-color: rgb(220, 200, 200);
+}
+
 a:link, a:visited {
     color: black;
     text-decoration: none;

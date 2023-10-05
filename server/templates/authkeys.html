@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         {% include 'head.html' %}
-        <title>LoveCube</title>
+        <title>My AuthKeys - LoveCube</title>
     </head>
     <body>
         {% include 'header.html' %}
@@ -10,6 +10,9 @@
         <div id="main">
             <div id="content">
                 <center>
+
+                    {% include 'error.j2' %}
+
                     <table class="main-list">
                         <tr>
                             <th class="main-list">API Authentication Key</th>
@@ -19,23 +22,17 @@
                         <tr>
                             <td class="main-list">********-****-****-****-************</td>
                             <td class="main-list">
-                                <!-- {% if devices|length > 0 %} -->
-                                    <!-- <select name="device-list" id="device-list">
-                                        {% for device in devices %}
-                                            <option value="{{ device.id }}">{% if device.nickname is not none %} {{ device.nickname }} {% else %} {{ device.id }} {% endif %}</option>
-                                        {% endfor %}
-                                    </select> -->
-                                <!-- {% else %}
-                                    <a href="{{ url_for('devices') }}">Register a new device</a>
-                                {% endif %} -->
-                                <input type="text" name="device-id" id="device-id" placeholder="abc123" maxlength="6" size="6"/>
+                                <select name="device-list" id="device-list">
+                                    {% for device in devices %}
+                                        <option value="{{ device.id }}">{% if device.nickname is not none %} {{ device.nickname }} {% else %} {{ device.id }} {% endif %}</option>
+                                    {% endfor %}
+                                    <option value="new">New device</option>
+                                </select>
+                                or
+                                <input type="text" name="device-id" id="device-id" placeholder="abc123" maxlength="6" size="6" {% if devices|length != 0 %} disabled {% endif %}/>
                             </td>
                             <td>
-                                <button onclick="fetch('/api/v1/register-api-key/{{session.personal_key}}/' + document.getElementById('device-list').value)
-                                    .then((response) => response.json())
-                                    .then((json) => console.log(json))
-                                    .then((json) => {if (json['error'] != 0) window.alert(json['error_msg']); else window.location.reload(); })
-                                ">Create new API key</button>
+                                <button onclick="new_api_key()">Create new API key</button>
                             </td>
                         </tr>
                         {% for key in authkeys %}
@@ -45,8 +42,7 @@
                             <td class="main-list">
                                 <button onclick="fetch('/api/v1/unregister-api-key/{{session.personal_key}}/{{key.key}}')
                                     .then((response) => response.json())
-                                    .then((json) => console.log(json))
-                                    .then((json) => {if (json['error'] != 0) window.alert(json['error_msg']); else window.location.reload(); })
+                                    .then((json) => {if (json.error != 0) window.alert(json.error_msg); else window.location.reload(); })
                                 ">Delete</button>
                                 <button onclick="window.alert('{{key.key}}')">Show Key</button>
                             </td>
@@ -56,6 +52,29 @@
                     </table>
                 </center>
             </div>
+
+            <script>
+                document.getElementById("device-list").addEventListener("change", function() {
+                    if (this.value == "new") {
+                        document.getElementById("device-id").disabled = false;
+                    } else {
+                        document.getElementById("device-id").disabled = true;
+                    }
+                });
+            </script>
+            <script>
+                function new_api_key() {
+                    selected_val = document.getElementById('device-list').value;
+                    if (selected_val == "new") {
+                        selected_val = document.getElementById('device-id').value;
+                    }
+                    fetch('/api/v1/register-api-key/{{session.personal_key}}/' + selected_val)
+                        .then((response) => response.json())
+                        .then((json) => {
+                            if (json.error != 0) window.alert(json.error_msg); else window.location.reload(); 
+                        })
+                }
+            </script>
 
             {% include 'footer.html' %}
         </div>

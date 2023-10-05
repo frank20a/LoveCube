@@ -68,6 +68,12 @@ void loop() {
   // Blinker variables
   static bool state = true;
   static uint64_t last_time = millis();
+  static int hue = 0;
+
+  for(int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = CHSV((hue + 5*i) % 256, 255, 255);
+  }
+  hue += 1;
 
   // Get charging states
   chrg_states[0] = !digitalRead(CHRG_PIN);
@@ -83,6 +89,8 @@ void loop() {
   // Check for serial command
   handle_serial_cmd();
   if (!config.configured) dns_server.processNextRequest();
+  FastLED.delay(25);
+  FastLED.show();
 }
 
 void handle_serial_cmd() {

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% include 'head.html' %}
+        <title>My Devices - LoveCube</title>
+    </head>
+    <body>
+        {% include 'header.html' %}
+
+        
+        <div id="main">
+            <div id="content">
+                <center>
+                    {% include 'error.j2' %}
+                    
+                    <div class="column-container">
+                        <div class="half-column" {% if debug %} style="background-color: rgb(193, 255, 209);" {% endif %}>
+                            <h3>Pair requests</h3>
+                            {% if requests|length > 0 %}
+                                <table class="main-list">
+                                    <tr>
+                                        <th class="main-list">From</th>
+                                        <th class="main-list">Device</th>
+                                        <th class="main-list">Date</th>
+                                        <th class="main-list">Status</th>
+                                        <th class="main-list">Operations</th>
+                                    </tr>
+                                    {% for pair in requests %}
+                                    <tr>
+                                        <td class="main-list">{{ pair['user'] }}</td>
+                                        <td class="main-list">{{ pair['device'].nickname or pair['device'].id }}</td>
+                                        <td class="main-list">{{ pair['created'] }}</td>
+                                        <td class="main-list">
+                                        {% if pair['approved'] %}
+                                            <b style="color: green;">ACCEPTED</b>
+                                        {% else %}
+                                            <b style="color: dimgray;">PENDING</b>
+                                        {% endif %}
+                                        </td>
+                                        <td class="main-list">
+                                        {% if not pair.approved %}
+                                            <form method="post" action="/pairs">
+                                                <input type="hidden" name="operation" value="accept"/>
+                                                <input type="hidden" name="pair_id" value="{{ pair['id'] }}"/>
+                                                <input type="submit" value="Accept" class="form-button accept-button"/>
+                                            </form>
+                                        {% endif %}
+                                            <form method="post" action="/pairs">
+                                                <input type="hidden" name="operation" value="delete"/>
+                                                <input type="hidden" name="pair_id" value="{{ pair['id'] }}"/>
+                                                <input type="submit" value="Delete" class="form-button reject-button"/>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </table>
+                            {% else %}
+                                <p>No pair requests.</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="half-column" {% if debug %} style="background-color: rgb(214, 255, 253);" {% endif %}>
+                            <h3>My pairs</h3>
+                            <table class="main-list">
+                                <tr>
+                                    <th class="main-list">Device ID</th>
+                                    <th class="main-list">Approved?</th>
+                                    <th class="main-list">Operation</th>
+                                </tr>
+                                <tr>
+                                    <form method="post" action="/pairs" value>
+                                        <input type="hidden" name="operation" value="request"/>
+                                        <td class="main-list"><input type="text" name="device_id" maxlength="6" minlength="4" placeholder="abc123"></td>
+                                        <td class="main-list"></td>
+                                        <td class="main-list"><input type="submit" value="Request"></td>
+                                    </form>
+                                </tr>
+                                {% for pair in pairs %}
+                                <tr>
+                                    <td class="main-list">{{ pair['device'].id }} {% if pair['device'].nickname is not none %}({{ pair['device'].nickname }}){% endif %}</td>
+                                    <td class="main-list">
+                                    {% if pair['approved'] %}
+                                        <b style="color: green;">ACCEPTED</b>
+                                    {% else %}
+                                        <b style="color: dimgray;">PENDING</b>
+                                    {% endif %}
+                                    </td>
+                                    <td class="main-list">
+                                        <form method="post" action="/pairs">
+                                            <input type="hidden" name="operation" value="delete"/>
+                                            <input type="hidden" name="pair_id" value="{{ pair['id'] }}"/>
+                                            <input type="submit" value="Revoke" class="form-button reject-button"/>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+
+                </center>
+            </div>
+
+            {% include 'footer.html' %}
+        </div>
+
+    </body> 
+</html>

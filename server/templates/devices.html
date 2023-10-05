@@ -2,24 +2,89 @@
 <html lang="en">
     <head>
         {% include 'head.html' %}
-        <title>LoveCube</title>
+        <title>My Devices - LoveCube</title>
     </head>
     <body>
         {% include 'header.html' %}
+
         
         <div id="main">
             <div id="content">
                 <center>
-                    <table>
+                    {% include 'error.j2' %}
+
+                    <table class="main-list">
                         <tr>
-                            <th>Device id</th>
-                            <th>Charging</th>
-                            <th>Current State</th>
-                            <th></th>
+                            <th class="main-list">Device id</th>
+                            <th class="main-list">Nickname</th>
+                            <th class="main-list">Battery Charging</th>
+                            <th class="main-list">Current Command</th>
+                            <th class="main-list">A Button Action</th>
+                            <th class="main-list">B Button Action</th>
+                            <th class="main-list">Last Ping</th>
                         </tr>
+                        {% for device in devices %}
+                        <tr>
+                            <form method="post" action="/devices" value>
+                                <input type="hidden" name="device_id" value="{{ device.id }}"/>
+                                <th class="main-list">{{ device.id }}</td>
+                                <td class="main-list"><input type="text" {% if device.nickname is not none %} value="{{ device.nickname }}" {% endif %} name="nickname"/></td>
+                                {% if device.bat_chrg_flag and not device.bat_stby_flag %}
+                                    <td class="main-list" style="background-color: orange;">CHARGING</td>
+                                {% elif not device.bat_chrg_flag and device.bat_stby_flag %}
+                                    <td class="main-list" style="background-color: greenyellow;">CHARGING</td>
+                                {% else %}
+                                    <td class="main-list" style="background-color: lightgray;">DISCONNECTED</td>
+                                {% endif %}
+                                <td class="main-list">{{ device.cmd }}</td>
+                                <td class="main-list">
+                                    {% if pairs|length > 0 %}
+                                    <select name="btn1_action_target">
+                                        {% for pair in pairs %}
+                                            <option value="{{ pair.id }}" {% if device.btn1_action.split("_")[0] == pair.id %} selected="selected" {% endif %}> {% if pair.nickname is not none %} pair.nickname {% else %} pair.id {% endif %}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <select  name="btn1_action_cmd">
+                                        {% for cmd in cmd_options %}
+                                            <option value="{{ cmd }}" {% if device.btn1_action.split("_")[1] == loop.index0 %} selected="selected" {% endif %}> {{ cmd }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    {% else %}
+                                    <a href="pairs">New pair</a>
+                                    {% endif %}
+                                </td>
+                                <td class="main-list">
+                                    {% if pairs|length > 0 %}
+                                    <select name="btn2_action_target">
+                                        {% for pair in pairs %}
+                                            <option value="{{ pair.id }}" {% if device.btn1_action.split("_")[0] == pair.id %} selected="selected" {% endif %}> {% if pair.nickname is not none %} pair.nickname {% else %} pair.id {% endif %}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <select  name="btn2_action_cmd">
+                                        {% for cmd in cmd_options %}
+                                            <option value="{{ cmd }}" {% if device.btn1_action.split("_")[1] == loop.index0 %} selected="selected" {% endif %}> {{ cmd }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    {% else %}
+                                    <a href="pairs">New pair</a>
+                                    {% endif %}
+                                </td>
+                                <td class="main-list">{{ device.last_ping }}</td>
+                                <td class="main-list">
+                                    <input type="submit" value="Save Edit">
+                                </td>
+                            </form>
+                        </tr>
+                        {% endfor %}
                     </table>
                 </center>
             </div>
+
+            <script>
+                function save_edit(device_id) {
+                    window.alert("save edit " + device_id)
+                }
+            </script>
 
             {% include 'footer.html' %}
         </div>
