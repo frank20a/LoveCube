@@ -145,6 +145,19 @@ def logout():
     session.pop('session_key', None)
     return redirect(url_for('index'))
 
+@app.route('/getting-started')
+def getting_started():
+    if check_session():
+        return redirect(url_for('getting_started'))
+    
+    with open(os.path.join(path, 'static', 'markdown', 'getting_started.md'), 'r') as f:
+        return render_template(
+            'markdown_page.html',
+            session=sessions[session['session_key']] if check_session() else None,
+            debug=DEBUG,
+            mkd=f.read()
+        )
+
 @app.route('/devices', methods=['GET', 'POST'])
 def devices():
     if not check_session():

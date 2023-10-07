@@ -1,3 +1,3 @@
 # LoveCube Firmware
 
-## Setting up and Usage
+Nothing to note here... Move along.

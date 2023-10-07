@@ -4,7 +4,7 @@ from numpy import sin, cos, pi
 
 
 class GameMaster:
-    def __init__(self, api_key, device_id, charging):
+    def __init__(self, api_key, device_id, charging, offline):
         # App parameters
         self._running = False
         self.size = self.width, self.height = 622, 622
@@ -12,7 +12,7 @@ class GameMaster:
         self.cmd = 0
         
         # Server details
-        self._server_url = "http://127.0.0.1:5000"
+        self._server_url = "http://127.0.0.1:5000" if offline else "https://frank20a.pythonanywhere.com"
         self._api_key = api_key
         self._device_id = device_id
         self.report_charging = charging > 0
@@ -149,11 +149,18 @@ if __name__ == "__main__":
         default=0,
         type=int
     )
+    parser.add_argument(
+        '-o',
+        '--offline',
+        help='Whether to use the online server or a local offline one.',
+        dest='offline', const=True, default=False, action='store_const'
+    )
     args = parser.parse_args()
     
     gm = GameMaster(
         args.api_key,
         args.device_id,
-        args.charging
+        args.charging,
+        args.offline
     )
     gm.run()

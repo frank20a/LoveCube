@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, render_template, redirect, url_for, request, session, flash
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
+from flaskext.markdown import Markdown
 import os
 
 
@@ -33,3 +34,6 @@ Session(app)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
 db = SQLAlchemy(app)
+
+# Create markdown
+Markdown(app)

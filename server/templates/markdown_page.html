@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% include 'head.html' %}
+        <title>Getting Started - LoveCube</title>
+    </head>
+    <body>
+        {% include 'header.html' %}
+        
+        <div id="main">
+            <div id="content">
+                {{ mkd|markdown }}
+            </div>
+
+            {% include 'footer.html' %}
+        </div>
+
+    </body> 
+</html>
