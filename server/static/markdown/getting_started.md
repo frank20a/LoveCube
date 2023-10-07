@@ -9,7 +9,7 @@ And now I will tell you a story of how to setup your new LoveCube.
 1. Go to [LoveCube's website](https://frank20a.pythonanywhere.com/register) and create an account.
 2. Create an access key for your new LoveCube [here](https://frank20a.pythonanywhere.com/authkeys).
     1. First, you need to find your LoveCube's ID. Read [here](#how-to-find-your-lovecubes-id) how to do that.
-    2. On the Authkeys page, select *New device* on the dropdown on the first line. If you have already registered your LoveCube, select it from the dropdown and you can create additional keys for it.
+    2. On the [Authkeys](https://frank20a.pythonanywhere.com/authkeys) page, select *New device* on the dropdown on the first line. If you have already registered your LoveCube, select it from the dropdown and you can create additional keys for it.
     3. If you are creating a new device, enter your LoveCube's ID in the text box.
     4. Click on *Create key* and you will see your new access key.
     5. The page will refresh and you will find a new access key for your device on the list. Click on the *Copy Key* button to copy it to your clipboard.
