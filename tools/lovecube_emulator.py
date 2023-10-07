@@ -21,6 +21,8 @@ class GameMaster:
         # Initialize pygame
         pg.init()
         self._display_surf = pg.display.set_mode(self.size, pg.HWSURFACE | pg.DOUBLEBUF)
+        self.btn1 = pg.Rect(50, 220, 150, 150)
+        self.btn2 = pg.Rect(422, 220, 150, 150)
     
     def run(self):
         self._running = True
@@ -33,6 +35,11 @@ class GameMaster:
     def handle_event(self, event):
         if event.type == pg.QUIT:
             self.quit()
+        elif event.type == pg.MOUSEBUTTONDOWN:
+            if self.btn1.collidepoint(pg.mouse.get_pos()):
+                self.btn_click(1)
+            elif self.btn2.collidepoint(pg.mouse.get_pos()):
+                self.btn_click(2)
             
     def update(self):
         self._display_surf.fill((50, 50, 50))
@@ -49,7 +56,17 @@ class GameMaster:
                 15
             )
         
+        pg.draw.rect(self._display_surf, (0, 0, 255) if self.btn1.collidepoint(pg.mouse.get_pos()) else (100, 100, 255), self.btn1)
+        pg.draw.rect(self._display_surf, (0, 0, 255) if self.btn2.collidepoint(pg.mouse.get_pos()) else (100, 100, 255), self.btn2)
+        
         pg.display.flip()
+    
+    def btn_click(self, btn) -> bool:
+        r = requests.get(f'{self._server_url}/api/v1/trigger/{self._api_key}/{self._device_id}/{btn}')
+        if r.status_code == 200:
+            print(r.json())
+            return True
+        return False
     
     def cleanup(self):
         pg.quit()

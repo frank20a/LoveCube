@@ -40,13 +40,15 @@
                                 <td class="main-list">
                                     {% if pairs|length > 0 %}
                                     <select name="btn1_action_target">
+                                        <option value="null">None</option>
                                         {% for pair in pairs %}
-                                            <option value="{{ pair.id }}" {% if device.btn1_action.split("_")[0] == pair.id %} selected="selected" {% endif %}> {% if pair.nickname is not none %} pair.nickname {% else %} pair.id {% endif %}</option>
+                                            <option value="{{ pair.id }}" {% if device.btn1_action.split("_")[0] == pair.id %} selected="selected" {% endif %}> {% if pair.nickname is not none %} {{ pair.nickname }} {% else %} {{ pair.id }} {% endif %}({{ pair_owners[pair.id] }})</option>
                                         {% endfor %}
                                     </select>
                                     <select  name="btn1_action_cmd">
+                                        <option value="null">None</option>
                                         {% for cmd in cmd_options %}
-                                            <option value="{{ cmd }}" {% if device.btn1_action.split("_")[1] == loop.index0 %} selected="selected" {% endif %}> {{ cmd }}</option>
+                                            <option value="{{ loop.index0 }}" {% if device.btn1_action.split("_")[1]|int == loop.index0 %} selected="selected" {% endif %}> {{ cmd }}</option>
                                         {% endfor %}
                                     </select>
                                     {% else %}
@@ -56,13 +58,15 @@
                                 <td class="main-list">
                                     {% if pairs|length > 0 %}
                                     <select name="btn2_action_target">
+                                        <option value="null">None</option>
                                         {% for pair in pairs %}
-                                            <option value="{{ pair.id }}" {% if device.btn1_action.split("_")[0] == pair.id %} selected="selected" {% endif %}> {% if pair.nickname is not none %} pair.nickname {% else %} pair.id {% endif %}</option>
+                                            <option value="{{ pair.id }}" {% if device.btn2_action.split("_")[0] == pair.id %} selected="selected" {% endif %}> {% if pair.nickname is not none %} {{ pair.nickname }} {% else %} {{ pair.id }} {% endif %}({{ pair_owners[pair.id] }})</option>
                                         {% endfor %}
                                     </select>
                                     <select  name="btn2_action_cmd">
+                                        <option value="null">None</option>
                                         {% for cmd in cmd_options %}
-                                            <option value="{{ cmd }}" {% if device.btn1_action.split("_")[1] == loop.index0 %} selected="selected" {% endif %}> {{ cmd }}</option>
+                                            <option value="{{ loop.index0 }}" {% if device.btn2_action.split("_")[1]|int == loop.index0 %} selected="selected" {% endif %}> {{ cmd }}</option>
                                         {% endfor %}
                                     </select>
                                     {% else %}

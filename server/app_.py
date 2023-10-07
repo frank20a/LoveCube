@@ -8,6 +8,13 @@ from db_models import *
 
 DEBUG = not online_flag
 sessions = {}
+CMD_OPTIONS = [
+    'Rainbow',
+    'Pulse Red',
+    'Pulse Green',
+    'Pulse Blue',
+]
+CMD_OPTIONS_REVERSE = {o: i for i, o in enumerate(CMD_OPTIONS)}
 
 
 def gen_hash(password, salt, username):
@@ -134,6 +141,7 @@ def devices():
         devices = Device.query.filter_by(owner=sessions[session['session_key']].user).all()
         _pairs = Pair.query.filter_by(user=sessions[session['session_key']].user).all()
         pairs = [Device.query.filter_by(id=_pair.device).first() for _pair in _pairs]
+        pair_owners = {pair.id: User.query.filter_by(id=pair.owner).first().username for pair in pairs}
         
         if len(devices) == 0:
             return redirect(url_for('authkeys', error=5))
@@ -145,12 +153,8 @@ def devices():
                 debug=DEBUG,
                 devices=devices,
                 pairs=pairs,
-                cmd_options=[
-                    'Rainbow',
-                    'Pulse Red',
-                    'Pulse Green',
-                    'Pulse Blue',
-                ]
+                pair_owners=pair_owners,
+                cmd_options=CMD_OPTIONS
             )
     
     if request.method == 'POST':
@@ -284,17 +288,6 @@ def trigger(api_key: str, device_id: str, btn: int):
     return jsonify({
         'error': 0,
     })
-
-# TODO: Implement
-@app.route('/api/v1/change-action/<api_key>/<device_id>/<int:btn>/<action>', methods=['GET'])
-def change_action(api_key: str, device_id: str, btn: int, action: str):
-    resp = {'error': 0}
-    
-    if 0 > btn > 2: # Invalid button number
-        resp['error'] = 1
-        resp['error_msg'] = 'Invalid button number'
-    
-    return jsonify(resp)
 
 # TODO: Implement
 @app.route('/api/v1/state/<api_key>/<device_id>', methods=['PUT'])
