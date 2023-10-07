@@ -19,7 +19,7 @@ And now I will tell you a story of how to setup your new LoveCube.
 
 1. Connect your LoveCube to power and let it boot up.
 2. If your LoveCube is new, it will create a WiFi network called `LoveCube-XXXXXX` where `XXXXXX` is your LoveCube's ID. Connect to it. If it doesn't, you will need to [reset it](#resetting-your-lovecube).
-3. Open a browser and go to [http://setup.lovecube.com](http://setup.lovecube.com). Enter your WiFi network's name and password. Also enter the access key you created in the previous step.
+3. Open a browser and go to [http://setup.lovecube.com](http://setup.lovecube.com). Enter your WiFi network's name and password. Also enter the access key you created in the previous step. **DON'T FORGET TO REMOVE THE DASHES "-" FROM THE KEY**.
 4. Click on *Save* and wait for your LoveCube to connect to the internet. This may take a few minutes. You may close the browser window.
 5. Go to the [Devices](https://frank20a.pythonanywhere.com/devices) page and confirm your LoveCube is connected. The *Last Ping* column should show a recent date and time and be green. Here, you can also see the charging status of your LoveCube.
 

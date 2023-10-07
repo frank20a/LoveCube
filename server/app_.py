@@ -92,6 +92,12 @@ def device_availability_from_last_ping(last_ping: datetime) -> int:
     return 0
 
 
+def fix_key(key: str) -> str:
+    if '-' not in key:
+        return ('-'.join([key[:8], key[8:12], key[12:16], key[16:20], key[20:]])).lower()
+    return key.lower()
+
+
 # Create database tables
 with app.app_context():
     db.create_all()
@@ -300,9 +306,13 @@ def pairs():
             
         return redirect(url_for('pairs'))
 
+
 # API
 @app.route('/api/v1/get-cmd/<api_key>/<device_id>', methods=['GET'])
 def get_cmd(api_key: str, device_id: str):
+    api_key = fix_key(api_key)
+    device_id = device_id.lower()
+    
     resp = {'error': 0}
     
     key_ = AuthKey.query.filter_by(key=api_key).first()
@@ -331,7 +341,7 @@ def get_cmd(api_key: str, device_id: str):
 
 @app.route('/api/v1/trigger/<api_key>/<device_id>/<int:btn>', methods=['GET'])
 def trigger(api_key: str, device_id: str, btn: int):
-    api_key = api_key.lower()
+    api_key = fix_key(api_key)
     device_id = device_id.lower()
     
     resp = {'error': 0}
@@ -376,6 +386,9 @@ def trigger(api_key: str, device_id: str, btn: int):
 
 @app.route('/api/v1/state/<api_key>/<device_id>', methods=['PUT'])
 def state(api_key: str, device_id: str):
+    api_key = fix_key(api_key)
+    device_id = device_id.lower()
+    
     resp = {'error': 0}
     
     key_ = AuthKey.query.filter_by(key=api_key).first()
@@ -402,7 +415,7 @@ def state(api_key: str, device_id: str):
 
 @app.route('/api/v1/register-api-key/<api_key>/<device_id>', methods=['GET'])
 def register_api_key(api_key: str, device_id: str):
-    api_key = api_key.lower()
+    api_key = fix_key(api_key)
     device_id = device_id.lower()
     
     resp = {'error': 0}
@@ -455,8 +468,8 @@ def register_api_key(api_key: str, device_id: str):
 
 @app.route('/api/v1/unregister-api-key/<user_api_key>/<target_api_key>', methods=['GET'])
 def unregister_api_key(user_api_key: str, target_api_key):
-    user_api_key = user_api_key.lower()
-    target_api_key = target_api_key.lower()
+    user_api_key = fix_key(user_api_key)
+    target_api_key = fix_key(target_api_key)
     
     resp = {'error': 0}
     
@@ -487,12 +500,14 @@ def unregister_api_key(user_api_key: str, target_api_key):
 # TODO: Implement
 @app.route('/api/v1/get-user-info/<api_key>', methods=['GET'])
 def get_user_info(api_key: str):
+    api_key = fix_key(api_key)
+    
     res = {'error': 0}
     return jsonify(res)
 
 @app.route('/api/v1/unregister-device/<api_key>/<device_id>', methods=['GET'])
 def unregister_device(api_key: str, device_id: str):
-    api_key = api_key.lower()
+    api_key = fix_key(api_key)
     device_id = device_id.lower()
     
     resp = {'error': 0}

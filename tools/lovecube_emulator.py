@@ -12,7 +12,7 @@ class GameMaster:
         self.cmd = 0
         
         # Server details
-        self._server_url = "http://127.0.0.1:5000" if offline else "https://frank20a.pythonanywhere.com"
+        self._server_url = "http://127.0.0.1:5000" if offline else "http://frank20a.pythonanywhere.com"
         self._api_key = api_key
         self._device_id = device_id
         self.report_charging = charging > 0

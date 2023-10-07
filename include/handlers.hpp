@@ -20,8 +20,6 @@ void on_index(AsyncWebServerRequest *request) {
                 return config.ssid;
             if(var == "pass")
                 return config.pass;
-            if(var == "user")
-                return config.username;
             if(var == "key")
                 return String(config.key);
             if(var == "uid")
@@ -33,7 +31,7 @@ void on_index(AsyncWebServerRequest *request) {
             if(var == "max_user")
                 return String(USER_MAX_LEN);
             if(var == "max_key")
-                return String(KEY_LEN);
+                return String(KEY_LEN) + 4;
             return String();
         }
     );
@@ -58,7 +56,6 @@ void on_config(AsyncWebServerRequest *request){
     if(
         !request->hasParam("ssid", true) ||
         !request->hasParam("password", true) ||
-        !request->hasParam("username", true) ||
         !request->hasParam("key", true)
     ) {
         request->send(400, "text/plain", "Config:400 (Bad Request)\nMissing parameters.");
@@ -69,7 +66,6 @@ void on_config(AsyncWebServerRequest *request){
     config.configured = true;
     strcpy(config.ssid, request->getParam("ssid", true)->value().c_str());
     strcpy(config.pass, request->getParam("password", true)->value().c_str());
-    strcpy(config.username, request->getParam("username", true)->value().c_str());
     strcpy(config.key, request->getParam("key", true)->value().c_str());
     save_config();
 

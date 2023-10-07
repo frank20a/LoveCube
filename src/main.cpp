@@ -53,6 +53,16 @@ void setup() {
     }
   }
 
+  // Start timers
+  if (!ITimer.attachInterruptInterval(HW_TIMER_INTERVAL_MS * 1000, TimerHandler)) {
+    Serial.println("Error attaching interrupt");
+    delay(5000);
+    ESP.restart();
+  }
+  ISR_Timer.setInterval(GET_STATUS_INTERVAL_MS, get_status);
+  ISR_Timer.setInterval(PUT_STATUS_INTERVAL_MS, put_status);
+  ISR_Timer.setInterval(LED_ANIMATION_INTERVAL_MS, led_animation);
+
   // Configure Pins
   pinMode(BTN1, INPUT);
   pinMode(BTN2, INPUT);
@@ -70,10 +80,10 @@ void loop() {
   static uint64_t last_time = millis();
   static int hue = 0;
 
-  for(int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CHSV((hue + 5*i) % 256, 255, 255);
-  }
-  hue += 1;
+  // for(int i = 0; i < NUM_LEDS; i++) {
+  //   leds[i] = CHSV((hue + 5*i) % 256, 255, 255);
+  // }
+  // hue += 1;
 
   // Get charging states
   chrg_states[0] = !digitalRead(CHRG_PIN);
@@ -89,8 +99,8 @@ void loop() {
   // Check for serial command
   handle_serial_cmd();
   if (!config.configured) dns_server.processNextRequest();
-  FastLED.delay(25);
-  FastLED.show();
+  // FastLED.delay(25);
+  // FastLED.show();
 }
 
 void handle_serial_cmd() {
@@ -170,7 +180,91 @@ void init_config() {
   config.configured = false;
   strcpy(config.ssid, "SSID_HERE");
   strcpy(config.pass, "PASS_HERE");
-  strcpy(config.username, "username");
   strcpy(config.key, "0123456789ABCDEF");
+  config.brightness = 128;
 }
 
+void get_status() {
+  http.begin("http://lovecube.com/api/v1/get-cmd/" + String(config.key) + "/" + uid);
+  StaticJsonDocument<256> resp;
+
+  int http_code = http.GET();
+  if (http_code == HTTP_CODE_OK) {
+    if (!deserializeJson(resp, http.getString())) {
+      if (resp["error"] == 0) {
+        cmd = resp["cmd"];
+      } else {
+        Serial.print("Error getting status: ");
+        Serial.println(String(resp["error_msg"]));
+      }
+    } else {
+      Serial.println("Error parsing JSON");
+    }
+  } else {
+    Serial.print("Error getting status: ");
+    Serial.println(http.errorToString(http_code));
+  }
+
+  http.end();
+}
+
+void put_status() {
+  http.begin("http://lovecube.com/api/v1/state/" + String(config.key) + "/" + uid);
+  StaticJsonDocument<256> buff;
+  String json;
+
+  buff['chrg_flag'] = chrg_states[0];
+  buff['stby_flag'] = chrg_states[1];
+  serializeJson(buff, json);
+
+  http.addHeader("Content-Type", "application/json");
+  int http_code = http.PUT(json);
+  if (http_code == HTTP_CODE_OK) {
+    if (!deserializeJson(buff, http.getString())) {
+      if (buff["error"] == 0) {
+        cmd = buff["cmd"];
+      } else {
+        Serial.print("Error getting status: ");
+        Serial.println(String(buff["error_msg"]));
+      }
+    } else {
+      Serial.println("Error parsing JSON");
+    }
+  } else {
+    Serial.print("Error getting status: ");
+    Serial.println(http.errorToString(http_code));
+  }
+
+  http.end();
+}
+
+void btn_trigger(uint8_t btn_num) {
+  http.begin("http://lovecube.com/api/v1/trigger/" + String(config.key) + "/" + uid + "/" + String(btn_num));
+  StaticJsonDocument<256> resp;
+
+  int http_code = http.GET();
+  if (http_code == HTTP_CODE_OK) {
+    if (!deserializeJson(resp, http.getString())) {
+      if (resp["error"] != 0) {
+        Serial.print("Error getting status: ");
+        Serial.println(String(resp["error_msg"]));
+      }
+    } else {
+      Serial.println("Error parsing JSON");
+    }
+  } else {
+    Serial.print("Error getting status: ");
+    Serial.println(http.errorToString(http_code));
+  }
+
+  http.end();
+}
+
+void led_animation() {
+  static int hue = 0;
+  for(int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = CHSV((hue + 5*i) % 256, 255, config.brightness);
+  }
+  hue += 1;
+  FastLED.show();
+}
