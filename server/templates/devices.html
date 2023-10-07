@@ -15,7 +15,7 @@
 
                     <table class="main-list">
                         <tr>
-                            <th class="main-list">Device id</th>
+                            <th class="main-list">Device ID</th>
                             <th class="main-list">Nickname</th>
                             <th class="main-list">Battery Charging</th>
                             <th class="main-list">Current Command</th>
@@ -32,11 +32,11 @@
                                 {% if device.bat_chrg_flag and not device.bat_stby_flag %}
                                     <td class="main-list" style="background-color: orange;">CHARGING</td>
                                 {% elif not device.bat_chrg_flag and device.bat_stby_flag %}
-                                    <td class="main-list" style="background-color: greenyellow;">CHARGING</td>
+                                    <td class="main-list" style="background-color: greenyellow;">CHARGED</td>
                                 {% else %}
                                     <td class="main-list" style="background-color: lightgray;">DISCONNECTED</td>
                                 {% endif %}
-                                <td class="main-list">{{ device.cmd }}</td>
+                                <td class="main-list">{{ cmd_options[device.cmd if not devices_cmd_expired[loop.index0] else 0] }}</td>
                                 <td class="main-list">
                                     {% if pairs|length > 0 %}
                                     <select name="btn1_action_target">
@@ -45,12 +45,14 @@
                                             <option value="{{ pair.id }}" {% if device.btn1_action.split("_")[0] == pair.id %} selected="selected" {% endif %}> {% if pair.nickname is not none %} {{ pair.nickname }} {% else %} {{ pair.id }} {% endif %}({{ pair_owners[pair.id] }})</option>
                                         {% endfor %}
                                     </select>
+                                    <span>: </span>
                                     <select  name="btn1_action_cmd">
-                                        <option value="null">None</option>
                                         {% for cmd in cmd_options %}
-                                            <option value="{{ loop.index0 }}" {% if device.btn1_action.split("_")[1]|int == loop.index0 %} selected="selected" {% endif %}> {{ cmd }}</option>
+                                            <option value="{{ loop.index0 }}" {% if device.btn1_action|length > 0 and device.btn1_action.split("_")[1]|int == loop.index0 %} selected="selected" {% endif %}> {{ cmd }}</option>
                                         {% endfor %}
                                     </select>
+                                    <span> for </span>
+                                    <input type="number" min="0" max="30" name="btn1_action_time" value="{% if device.btn1_action|length > 0 %}{{ device.btn1_action.split("_")[2]|int }}{% else %}0{% endif %}" style="width: 3em;"/> <span> mins</span>
                                     {% else %}
                                     <a href="pairs">New pair</a>
                                     {% endif %}
@@ -63,17 +65,23 @@
                                             <option value="{{ pair.id }}" {% if device.btn2_action.split("_")[0] == pair.id %} selected="selected" {% endif %}> {% if pair.nickname is not none %} {{ pair.nickname }} {% else %} {{ pair.id }} {% endif %}({{ pair_owners[pair.id] }})</option>
                                         {% endfor %}
                                     </select>
-                                    <select  name="btn2_action_cmd">
-                                        <option value="null">None</option>
+                                    <span>: </span>
+                                    <select name="btn2_action_cmd">
                                         {% for cmd in cmd_options %}
-                                            <option value="{{ loop.index0 }}" {% if device.btn2_action.split("_")[1]|int == loop.index0 %} selected="selected" {% endif %}> {{ cmd }}</option>
+                                            <option value="{{ loop.index0 }}" {% if device.btn2_action|length > 0 and device.btn2_action.split("_")[1]|int == loop.index0 %} selected="selected" {% endif %}> {{ cmd }}</option>
                                         {% endfor %}
                                     </select>
+                                    <span> for </span>
+                                    <input type="number" min="0" max="30" name="btn2_action_time" value="{% if device.btn2_action|length > 0 %}{{ device.btn2_action.split("_")[2]|int }}{% else %}0{% endif %}" style="width: 3em;"/> <span> mins</span>
                                     {% else %}
                                     <a href="pairs">New pair</a>
                                     {% endif %}
                                 </td>
-                                <td class="main-list">{{ device.last_ping }}</td>
+                                <td class="main-list" 
+                                    {% if devices_availability[loop.index0] == 1 %} style="background-color: orange;" 
+                                    {% elif devices_availability[loop.index0] == 2 %} style="background-color: orangered;" 
+                                    {% endif %}
+                                >{{ device.last_ping }}</td>
                                 <td class="main-list">
                                     <input type="submit" value="Save Edit">
                                 </td>

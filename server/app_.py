@@ -9,10 +9,15 @@ from db_models import *
 DEBUG = not online_flag
 sessions = {}
 CMD_OPTIONS = [
+    'None',
     'Rainbow',
     'Pulse Red',
     'Pulse Green',
     'Pulse Blue',
+    'Pulse Yellow',
+    'Pulse Cyan',
+    'Pulse Magenta',
+    'Pulse White',
 ]
 CMD_OPTIONS_REVERSE = {o: i for i, o in enumerate(CMD_OPTIONS)}
 
@@ -79,6 +84,14 @@ def check_session() -> bool:
     return True
 
 
+def device_availability_from_last_ping(last_ping: datetime) -> int:
+    if last_ping + timedelta(minutes=1) < datetime.utcnow():
+        return 1
+    elif last_ping + timedelta(hours=1) < datetime.utcnow():
+        return 2
+    return 0
+
+
 # Create database tables
 with app.app_context():
     db.create_all()
@@ -139,7 +152,7 @@ def devices():
     
     if request.method == 'GET':
         devices = Device.query.filter_by(owner=sessions[session['session_key']].user).all()
-        _pairs = Pair.query.filter_by(user=sessions[session['session_key']].user).all()
+        _pairs = Pair.query.filter_by(user=sessions[session['session_key']].user, approved=True).all()
         pairs = [Device.query.filter_by(id=_pair.device).first() for _pair in _pairs]
         pair_owners = {pair.id: User.query.filter_by(id=pair.owner).first().username for pair in pairs}
         
@@ -152,6 +165,8 @@ def devices():
                 error=request.args.get('error', 0, int),
                 debug=DEBUG,
                 devices=devices,
+                devices_cmd_expired=[device.cmd_exp < datetime.utcnow() for device in devices],
+                devices_availability=[device_availability_from_last_ping(device.last_ping) for device in devices],
                 pairs=pairs,
                 pair_owners=pair_owners,
                 cmd_options=CMD_OPTIONS
@@ -168,8 +183,8 @@ def devices():
         if len(request.form['nickname']) > 0:
             _device.nickname = request.form['nickname']
         if 'btn1_action_target' in request.form:
-            _device.btn1_action = f"{request.form['btn1_action_target']}_{request.form['btn1_action_cmd']}"
-            _device.btn2_action = f"{request.form['btn2_action_target']}_{request.form['btn2_action_cmd']}"
+            _device.btn1_action = f"{request.form['btn1_action_target']}_{request.form['btn1_action_cmd']}_{request.form['btn1_action_time']}"
+            _device.btn2_action = f"{request.form['btn2_action_target']}_{request.form['btn2_action_cmd']}_{request.form['btn2_action_time']}"
         
         db.session.commit()
         return redirect(url_for('devices'))
@@ -273,31 +288,110 @@ def pairs():
         return redirect(url_for('pairs'))
 
 # API
-# TODO: Implement
 @app.route('/api/v1/get-cmd/<api_key>/<device_id>', methods=['GET'])
 def get_cmd(api_key: str, device_id: str):
-    return jsonify({
-        'error': 0,
-        'cmd': 0,
-        'cmd_exp': False
-    })
+    resp = {'error': 0}
+    
+    key_ = AuthKey.query.filter_by(key=api_key).first()
+    device_ = Device.query.filter_by(id=device_id).first()
+    
+    if key_ is None:
+        resp['error'] = 1
+        resp['error_msg'] = 'Invalid API key'
+    elif device_ is None:
+        resp['error'] = 2
+        resp['error_msg'] = 'Invalid device ID'
+    elif key_.device != device_.id and not key_.is_user_key:
+        resp['error'] = 3
+        resp['error_msg'] = 'API key is not for this device'
+    elif key_.is_user_key and key_.user != device_.owner:
+        resp['error'] = 4
+        resp['error_msg'] = 'API key is user key (master) but device is not register to this user'
+    else:
+        resp['cmd'] = device_.cmd if device_.cmd_exp > datetime.utcnow() else 0
+        
+    if device_ is not None:
+        device_.last_ping = datetime.utcnow()
+    db.session.commit()
+    
+    return jsonify(resp)
 
-# TODO: Implement
 @app.route('/api/v1/trigger/<api_key>/<device_id>/<int:btn>', methods=['GET'])
 def trigger(api_key: str, device_id: str, btn: int):
-    return jsonify({
-        'error': 0,
-    })
+    api_key = api_key.lower()
+    device_id = device_id.lower()
+    
+    resp = {'error': 0}
+    
+    key_ = AuthKey.query.filter_by(key=api_key).first()
+    device_ = Device.query.filter_by(id=device_id).first()
+    
+    if key_ is None:
+        resp['error'] = 1
+        resp['error_msg'] = 'Invalid API key'
+    elif device_ is None:
+        resp['error'] = 2
+        resp['error_msg'] = 'Invalid device ID'
+    elif key_.device != device_.id and not key_.is_user_key:
+        resp['error'] = 3
+        resp['error_msg'] = 'API key is not for this device'
+    elif key_.is_user_key and key_.user != device_.owner:
+        resp['error'] = 4
+        resp['error_msg'] = 'API key is user key (master) but device is not register to this user'
+    elif btn not in [1, 2]:
+        resp['error'] = 5
+        resp['error_msg'] = 'Invalid button number'
+    else:
+        cmd = (device_.btn1_action if btn == 1 else device_.btn2_action).split('_')
+        target_device_ = Device.query.filter_by(id=cmd[0]).first()
+        
+        if target_device_ is None:
+            resp['error'] = 6
+            resp['error_msg'] = 'Invalid target device'
+        elif target_device_.id not in [pair.device for pair in Pair.query.filter_by(user=device_.owner, approved=True).all()]:
+            resp['error'] = 7
+            resp['error_msg'] = 'Target device is not paired'
+        else:
+            target_device_.cmd = int(cmd[1])
+            target_device_.cmd_exp = datetime.utcnow() + timedelta(minutes=int(cmd[2]))
+    
+    if device_ is not None:
+        device_.last_ping = datetime.utcnow()
+    db.session.commit()
+        
+    return jsonify(resp)
 
-# TODO: Implement
 @app.route('/api/v1/state/<api_key>/<device_id>', methods=['PUT'])
 def state(api_key: str, device_id: str):
-    return jsonify({
-        'error': 0
-    })
+    resp = {'error': 0}
+    
+    key_ = AuthKey.query.filter_by(key=api_key).first()
+    device_ = Device.query.filter_by(id=device_id).first()
+    
+    if key_ is None:
+        resp['error'] = 1
+        resp['error_msg'] = 'Invalid API key'
+    elif device_ is None:
+        resp['error'] = 2
+        resp['error_msg'] = 'Invalid device ID'
+    elif key_.device != device_.id:
+        resp['error'] = 3
+        resp['error_msg'] = 'API key is not for this device'
+    else:
+        device_.bat_chrg_flag = request.json['chrg_flag']
+        device_.bat_stby_flag = request.json['stby_flag']
+        
+    if device_ is not None:
+        device_.last_ping = datetime.utcnow()
+    db.session.commit()
+    
+    return jsonify(resp)
 
 @app.route('/api/v1/register-api-key/<api_key>/<device_id>', methods=['GET'])
 def register_api_key(api_key: str, device_id: str):
+    api_key = api_key.lower()
+    device_id = device_id.lower()
+    
     resp = {'error': 0}
     
     device = Device.query.filter_by(id=device_id).first()
@@ -348,6 +442,9 @@ def register_api_key(api_key: str, device_id: str):
 
 @app.route('/api/v1/unregister-api-key/<user_api_key>/<target_api_key>', methods=['GET'])
 def unregister_api_key(user_api_key: str, target_api_key):
+    user_api_key = user_api_key.lower()
+    target_api_key = target_api_key.lower()
+    
     resp = {'error': 0}
     
     user_key = AuthKey.query.filter_by(key=user_api_key).first()
@@ -377,10 +474,14 @@ def unregister_api_key(user_api_key: str, target_api_key):
 # TODO: Implement
 @app.route('/api/v1/get-user-info/<api_key>', methods=['GET'])
 def get_user_info(api_key: str):
-    pass
+    res = {'error': 0}
+    return jsonify(res)
 
 @app.route('/api/v1/unregister-device/<api_key>/<device_id>', methods=['GET'])
 def unregister_device(api_key: str, device_id: str):
+    api_key = api_key.lower()
+    device_id = device_id.lower()
+    
     resp = {'error': 0}
     
     _api_key = AuthKey.query.filter_by(key=api_key).first()

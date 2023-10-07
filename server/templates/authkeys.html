@@ -2,6 +2,7 @@
 <html lang="en">
     <head>
         {% include 'head.html' %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/tooltip.css') }}">
         <title>My AuthKeys - LoveCube</title>
     </head>
     <body>
@@ -44,7 +45,12 @@
                                     .then((response) => response.json())
                                     .then((json) => {if (json.error != 0) window.alert(json.error_msg); else window.location.reload(); })
                                 ">Delete</button>
-                                <button onclick="window.alert('{{key.key}}')">Show Key</button>
+                                <div class="tooltip">
+                                    <button onclick="copy_key('{{key.key}}', '{{ loop.index0 }}')" onmouseout="tool_tip_outfunc('{{ loop.index0 }}')">
+                                        <span class="tooltiptext" id="copy-key-tooltip-{{ loop.index0 }}">Copy to clipboard</span>
+                                        Copy Key
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -61,8 +67,7 @@
                         document.getElementById("device-id").disabled = true;
                     }
                 });
-            </script>
-            <script>
+                
                 function new_api_key() {
                     selected_val = document.getElementById('device-list').value;
                     if (selected_val == "new") {
@@ -73,6 +78,17 @@
                         .then((json) => {
                             if (json.error != 0) window.alert(json.error_msg); else window.location.reload(); 
                         })
+                }
+
+                function copy_key(key, i) {
+                    navigator.clipboard.writeText(key);
+                    var tooltip = document.getElementById("copy-key-tooltip-" + i);
+                    tooltip.innerHTML = "Key Copied";
+                }
+
+                function tool_tip_outfunc(i) {
+                    var tooltip = document.getElementById("copy-key-tooltip-" + i);
+                    tooltip.innerHTML = "Copy to clipboard";
                 }
             </script>
 
