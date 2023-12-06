@@ -30,6 +30,8 @@ void on_index(AsyncWebServerRequest *request) {
                 return String(PASS_MAX_LEN);
             if(var == "max_user")
                 return String(USER_MAX_LEN);
+            if(var == "min_key")
+                return String(KEY_LEN);
             if(var == "max_key")
                 return String(KEY_LEN) + 4;
             return String();

@@ -6,7 +6,7 @@ void setup() {
   Serial.begin(115200);
 
   // LEDs
-  FastLED.addLeds<SK6812, LED>(leds, NUM_LEDS);
+  FastLED.addLeds<SK6812, LED, GRB>(leds, NUM_LEDS);
 
   // Mount LittleFS
   if(!LittleFS.begin()){
@@ -47,21 +47,26 @@ void setup() {
     WiFi.mode(WIFI_STA);
     WiFi.begin(config.ssid, config.pass);
     if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-      Serial.println("WiFi connection failed! Rebooting...");
-      delay(5000);
+      Serial.println("WiFi connection failed");
+      Serial.print("SSID: ");
+      Serial.println(config.ssid);
+      Serial.print("PASS: ");
+      Serial.println(config.pass);
+
+      config.configured = false;
+      if (!save_config()) {
+        Serial.println("An Error has occurred while saving config");
+      }
+      
+      Serial.println("Accepting debug commands for 1 minute");
+      unsigned long long int prevt = millis();
+      while(millis() - prevt < 60000) {
+        handle_serial_cmd();
+        delay(50);
+      }
       ESP.restart();
     }
   }
-
-  // Start timers
-  if (!ITimer.attachInterruptInterval(HW_TIMER_INTERVAL_MS * 1000, TimerHandler)) {
-    Serial.println("Error attaching interrupt");
-    delay(5000);
-    ESP.restart();
-  }
-  ISR_Timer.setInterval(GET_STATUS_INTERVAL_MS, get_status);
-  ISR_Timer.setInterval(PUT_STATUS_INTERVAL_MS, put_status);
-  ISR_Timer.setInterval(LED_ANIMATION_INTERVAL_MS, led_animation);
 
   // Configure Pins
   pinMode(BTN1, INPUT);
@@ -72,35 +77,41 @@ void setup() {
   pinMode(HW_LED, OUTPUT);
   pinMode(CHRG_PIN, INPUT);
   pinMode(STBY_PIN, INPUT);
+
+  // Turn LEDs off
+  for(int i = 0; i < NUM_LEDS; i++) leds[i] = CRGB(0, 0, 0);
+  FastLED.show();
 }
 
 void loop() {
-  // Blinker variables
-  static bool state = true;
-  static uint64_t last_time = millis();
-  static int hue = 0;
-
-  // for(int i = 0; i < NUM_LEDS; i++) {
-  //   leds[i] = CHSV((hue + 5*i) % 256, 255, 255);
-  // }
-  // hue += 1;
-
   // Get charging states
   chrg_states[0] = !digitalRead(CHRG_PIN);
   chrg_states[1] = !digitalRead(STBY_PIN);
 
-  // Blinker logic
-  if (millis() - last_time > 1000) {
-    last_time = millis();
-    state = !state;
-    digitalWrite(HW_LED, !(state && config.configured));
+  // Timers logic
+  blinker_pulse();
+  if(config.configured) {
+    // put_status();
+    get_status();
   }
+  led_animation();
+
+  // Serial.println(cmd);
 
   // Check for serial command
   handle_serial_cmd();
   if (!config.configured) dns_server.processNextRequest();
-  // FastLED.delay(25);
-  // FastLED.show();
+}
+
+void blinker_pulse() {
+  static unsigned long long int prevt_blinker = millis();
+  static bool state = true;
+
+  if (millis() - prevt_blinker > BLINKER_PULSE_INTERVAL_MS && !config.configured) {
+    prevt_blinker = millis();
+    state = !state;
+    digitalWrite(HW_LED, !(state && config.configured));
+  }
 }
 
 void handle_serial_cmd() {
@@ -185,7 +196,15 @@ void init_config() {
 }
 
 void get_status() {
-  http.begin("http://lovecube.com/api/v1/get-cmd/" + String(config.key) + "/" + uid);
+  static unsigned long long int prevt_status = millis();
+
+  if (millis() - prevt_status < GET_STATUS_INTERVAL_MS) return;
+  prevt_status = millis();
+
+  WiFiClient client;
+  String host = String(API_HOST) + "api/v1/get-cmd/" + String(config.key) + "/" + String(uid, HEX);
+
+  http.begin(client, host);
   StaticJsonDocument<256> resp;
 
   int http_code = http.GET();
@@ -201,15 +220,29 @@ void get_status() {
       Serial.println("Error parsing JSON");
     }
   } else {
-    Serial.print("Error getting status: ");
+    Serial.print("Error getting status from ");
+    Serial.print(host);
+    Serial.print(": ");
+    Serial.print(String(http_code));
+    Serial.print(" - ");
     Serial.println(http.errorToString(http_code));
+    Serial.println(http.getString());
+    Serial.println();
   }
 
   http.end();
 }
 
 void put_status() {
-  http.begin("http://lovecube.com/api/v1/state/" + String(config.key) + "/" + uid);
+  static unsigned long long int prevt_status = millis();
+
+  if (millis() - prevt_status < PUT_STATUS_INTERVAL_MS) return;
+  prevt_status = millis();
+
+  WiFiClient client;
+  String host = String(API_HOST) + "api/v1/state/" + String(config.key) + "/" + String(uid, HEX);
+
+  http.begin(client, host);
   StaticJsonDocument<256> buff;
   String json;
 
@@ -239,7 +272,9 @@ void put_status() {
 }
 
 void btn_trigger(uint8_t btn_num) {
-  http.begin("http://lovecube.com/api/v1/trigger/" + String(config.key) + "/" + uid + "/" + String(btn_num));
+  WiFiClient client;
+
+  http.begin(client, String(API_HOST) + "api/v1/trigger/" + String(config.key) + "/" + uid + "/" + String(btn_num));
   StaticJsonDocument<256> resp;
 
   int http_code = http.GET();
@@ -261,10 +296,55 @@ void btn_trigger(uint8_t btn_num) {
 }
 
 void led_animation() {
-  static int hue = 0;
-  for(int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CHSV((hue + 5*i) % 256, 255, config.brightness);
+  static unsigned long long int prevt_led = millis();
+  static uint8_t hue = 0;
+  static uint8_t brightness = config.brightness;
+  static bool dir = true;
+
+  if (millis() - prevt_led < LED_ANIMATION_INTERVAL_MS) return;
+  prevt_led = millis();
+
+  if (cmd == 0 or cmd > 8) {
+    for(int i = 0; i < NUM_LEDS; i++) {
+      leds[i] = CRGB(0, 0, 0);
+    }
+  } else if (cmd == 1) {
+    for(int i = 0; i < NUM_LEDS; i++) {
+      leds[i] = CHSV((hue + 5*i) % 256, 255, config.brightness);
+    }
+  } else if (cmd < 8) {
+    for(int i = 0; i < NUM_LEDS; i++) {
+      Serial.println(cmd);
+      switch (cmd){
+        case 2:
+          leds[i] = CRGB(brightness, 0, 0);
+          break;
+        case 3:
+          leds[i] = CRGB(0, brightness, 0);
+          break;
+        case 4:
+          leds[i] = CRGB(0, 0, brightness);
+          break;
+        case 5:
+          leds[i] = CRGB(brightness, brightness, 0);
+          break;
+        case 6:
+          leds[i] = CRGB(0, brightness, brightness);
+          break;
+        case 7:
+          leds[i] = CRGB(brightness, 0, brightness);
+          break;
+      }
+    }
+  } else if (cmd == 8){
+    for(int i = 0; i < NUM_LEDS; i++) {
+      leds[i] = CHSV(0, 0, brightness);
+    }
   }
-  hue += 1;
+
+  hue++;
+  if (brightness <= 10 ) dir = true;
+  else if (brightness >= config.brightness) dir = false;
+  brightness += dir ? 3 : -3;
   FastLED.show();
 }

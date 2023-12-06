@@ -5,32 +5,29 @@
 #include <Arduino.h>
 // #include <CapacitiveSensor.h>
 #include <FastLED.h>
-#include <ESP8266WiFi.h>
 #include <DNSServer.h>
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
+#include <WiFiClient.h>
 #include <LittleFS.h>
 #include <Hash.h>
-#include <ESP8266TimerInterrupt.h>
-#include <ESP8266_ISR_Timer.h>
 #include <ArduinoJson.h>
 
 
 #define SSID_MAX_LEN 32
 #define PASS_MAX_LEN 64
 #define USER_MAX_LEN 10
-#define KEY_LEN 16
+#define KEY_LEN 32
 #define CONFIG_FILENAME F("/config.dat")
 #define DNS_PORT 53
-#define HW_TIMER_INTERVAL_MS 5L
-#define GET_STATUS_INTERVAL_MS 10000L
-#define PUT_STATUS_INTERVAL_MS 120000L
-#define LED_ANIMATION_INTERVAL_MS 25L
+#define GET_STATUS_INTERVAL_MS 10000
+#define PUT_STATUS_INTERVAL_MS 120000
+#define LED_ANIMATION_INTERVAL_MS 25
+#define BLINKER_PULSE_INTERVAL_MS 1000
 
 
-ESP8266Timer ITimer;
-ESP8266_ISR_Timer ISR_Timer;
 HTTPClient http;
 DNSServer dns_server;
 AsyncWebServer web_server(80);
@@ -55,7 +52,7 @@ typedef struct {
     bool configured;
     char ssid[SSID_MAX_LEN + 1];
     char pass[PASS_MAX_LEN + 1];
-    char key[KEY_LEN + 1];
+    char key[KEY_LEN + 5];
     uint8_t brightness;
 } Config;
 
@@ -70,11 +67,11 @@ uint8_t cmd = 0;
 
 
 // Methods
+void blinker_pulse(); 
 void handle_serial_cmd();
 bool load_config();
 bool save_config();
 void init_config();
-void IRAM_ATTR TimerHandler() { ISR_Timer.run(); }
 void get_status();
 void put_status();
 void led_animation();
