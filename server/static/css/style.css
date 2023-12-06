@@ -67,40 +67,75 @@ table.main-list, th.main-list, td.main-list {
     border: 1px solid var(--back-color);
 }
 
-label.login-form-element {
+.trigger_btn {
+    background-color: var(--back-color);
+    border: 0;
+    font-size: 20px;
+}
+
+.trigger_btn:hover {
+    cursor: pointer;
+}
+
+.form-element {
+    font-size: 20px;
+}
+
+label.form-element {
     margin-right: 10px;
 }
 
-table.login-form{
+table.form{
     border-spacing: 0 1.5em;
 }
 
-input.login-form-element, button.login-form-element {
+input.form-element, button.form-element {
     background-color: var(--back-color);
     font-size: 20px;
 }
 
-input.login-form-element.text-input {
+input.form-element.text-input {
     border: 0;
-    border-bottom: 2px solid black;
+    border-bottom: 2px solid var(--bold-color);
     size: 100%;
     outline: none;
 }
 
-input:focus.login-form-element.text-input {
-    border-bottom: 4px solid black;
+input:focus.form-element.text-input {
+    border-bottom: 4px solid var(--bold-color);
 }
 
-input.login-form-element.btn-input, button.login-form-element {
+input.form-element.btn-input, button.form-element {
     border: 2px solid var(--bold-color);
     border-radius: 10px;
-    font-size: 20px;
     padding: 5px;
 }
 
-input.login-form-element.btn-input:hover, button.login-form-element:hover {
+input.form-element.btn-input:hover, button.form-element:hover {
     background-color: var(--bold-color);
-    cursor: grab;
+    cursor: pointer;
+}
+
+input.form-element.num-input {
+    background-color: var(--back-color);
+    border: 0;
+    border-bottom: 2px solid var(--bold-color);
+}
+
+input:focus.form-element.num-input {
+    border-bottom: 4px solid var(--bold-color);
+}
+
+select.form-element {
+    background-color: var(--back-color);
+    border: 0;
+    border-bottom: 2px solid var(--bold-color);
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+select:focus.form-element {
+    border-bottom: 4px solid var(--bold-color);
 }
 
 .form-button {

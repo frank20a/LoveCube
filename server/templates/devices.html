@@ -2,19 +2,19 @@
 <html lang="en">
     <head>
         {% include 'head.html' %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/tooltip.css') }}">
         <title>My Devices - LoveCube</title>
     </head>
     <body>
         {% include 'header.html' %}
-
         
         <div id="main">
             <div id="content">
                 <center>
                     {% include 'error.j2' %}
 
-                    <table class="main-list">
-                        <tr>
+                    <table class="main-list form">
+                        <tr class="form">
                             <th class="main-list">Device ID</th>
                             <th class="main-list">Nickname</th>
                             <th class="main-list">Battery Charging</th>
@@ -24,11 +24,11 @@
                             <th class="main-list">Last Ping</th>
                         </tr>
                         {% for device in devices %}
-                        <tr>
-                            <form method="post" action="/devices" value>
-                                <input type="hidden" name="device_id" value="{{ device.id }}"/>
+                        <tr class="form">
+                            <form class="form" method="post" action="/devices" value>
+                                <input class="form-element" type="hidden" name="device_id" value="{{ device.id }}"/>
                                 <th class="main-list">{{ device.id }}</td>
-                                <td class="main-list"><input type="text" {% if device.nickname is not none %} value="{{ device.nickname }}" {% endif %} name="nickname"/></td>
+                                <td class="main-list"><input class="form-element text-input" type="text" {% if device.nickname is not none %} value="{{ device.nickname }}" {% endif %} name="nickname" size="10"/></td>
                                 {% if device.bat_chrg_flag and not device.bat_stby_flag %}
                                     <td class="main-list" style="background-color: orange;">CHARGING</td>
                                 {% elif not device.bat_chrg_flag and device.bat_stby_flag %}
@@ -39,40 +39,48 @@
                                 <td class="main-list">{{ cmd_options[device.cmd if not devices_cmd_expired[loop.index0] else 0] }}</td>
                                 <td class="main-list">
                                     {% if pairs|length > 0 %}
-                                    <select name="btn1_action_target">
+                                    <div class="tooltip"><button id="trig_a_{{ device.id }}" type="button" class="trigger_btn">
+                                        <span class="tooltiptext" id="trig_a_tooltip_{{ device.id }}">Trigger A</span>
+                                        ✅
+                                    </button></div>
+                                    <select class="form-element" name="btn1_action_target">
                                         <option value="null">None</option>
                                         {% for pair in pairs %}
                                             <option value="{{ pair.id }}" {% if device.btn1_action.split("_")[0] == pair.id %} selected="selected" {% endif %}> {% if pair.nickname is not none %} {{ pair.nickname }} {% else %} {{ pair.id }} {% endif %}({{ pair_owners[pair.id] }})</option>
                                         {% endfor %}
                                     </select>
-                                    <span>: </span>
-                                    <select  name="btn1_action_cmd">
+                                    <span>: </span><br>
+                                    <select class="form-element" name="btn1_action_cmd">
                                         {% for cmd in cmd_options %}
                                             <option value="{{ loop.index0 }}" {% if device.btn1_action|length > 0 and device.btn1_action.split("_")[1]|int == loop.index0 %} selected="selected" {% endif %}> {{ cmd }}</option>
                                         {% endfor %}
                                     </select>
                                     <span> for </span>
-                                    <input type="number" min="0" max="30" name="btn1_action_time" value="{% if device.btn1_action|length > 0 %}{{ device.btn1_action.split("_")[2]|int }}{% else %}0{% endif %}" style="width: 3em;"/> <span> mins</span>
+                                    <input class="form-element num-input" type="number" min="0" max="30" name="btn1_action_time" value="{% if device.btn1_action|length > 0 %}{{ device.btn1_action.split("_")[2]|int }}{% else %}0{% endif %}" style="width: 3em;"/> <span> mins</span>
                                     {% else %}
                                     <a href="pairs">New pair</a>
                                     {% endif %}
                                 </td>
                                 <td class="main-list">
                                     {% if pairs|length > 0 %}
-                                    <select name="btn2_action_target">
+                                    <div class="tooltip"><button id="trig_b_{{ device.id }}" type="button" class="trigger_btn">
+                                        <span class="tooltiptext" id="trig_b_tooltip_{{ device.id }}">Trigger B</span>
+                                        ✅
+                                    </button></div>
+                                    <select class="form-element" name="btn2_action_target">
                                         <option value="null">None</option>
                                         {% for pair in pairs %}
                                             <option value="{{ pair.id }}" {% if device.btn2_action.split("_")[0] == pair.id %} selected="selected" {% endif %}> {% if pair.nickname is not none %} {{ pair.nickname }} {% else %} {{ pair.id }} {% endif %}({{ pair_owners[pair.id] }})</option>
                                         {% endfor %}
                                     </select>
-                                    <span>: </span>
-                                    <select name="btn2_action_cmd">
+                                    <span>: </span><br>
+                                    <select class="form-element" name="btn2_action_cmd">
                                         {% for cmd in cmd_options %}
                                             <option value="{{ loop.index0 }}" {% if device.btn2_action|length > 0 and device.btn2_action.split("_")[1]|int == loop.index0 %} selected="selected" {% endif %}> {{ cmd }}</option>
                                         {% endfor %}
                                     </select>
                                     <span> for </span>
-                                    <input type="number" min="0" max="30" name="btn2_action_time" value="{% if device.btn2_action|length > 0 %}{{ device.btn2_action.split("_")[2]|int }}{% else %}0{% endif %}" style="width: 3em;"/> <span> mins</span>
+                                    <input class="form-element num-input" type="number" min="0" max="30" name="btn2_action_time" value="{% if device.btn2_action|length > 0 %}{{ device.btn2_action.split("_")[2]|int }}{% else %}0{% endif %}" style="width: 3em;"/> <span> mins</span>
                                     {% else %}
                                     <a href="pairs">New pair</a>
                                     {% endif %}
@@ -83,23 +91,58 @@
                                     {% endif %}
                                 >{{ device.last_ping }}</td>
                                 <td class="main-list">
-                                    <input type="submit" value="Save Edit">
+                                    <input class="form-element btn-input" type="submit" value="Save Edit"/>
                                 </td>
-                            </form>
                         </tr>
                         {% endfor %}
                     </table>
+                </form>
                 </center>
             </div>
 
-            <script>
-                function save_edit(device_id) {
-                    window.alert("save edit " + device_id)
-                }
-            </script>
-
             {% include 'footer.html' %}
         </div>
+
+        <script>
+            {% for device in devices %}
+                document.getElementById("trig_a_{{ device.id }}").addEventListener("click", function() {
+                    fetch('/api/v1/trigger/{{ session.personal_key }}/{{ device.id }}/1', {})
+                        .then( response => response.json() )
+                        .then( response => {
+                            var tooltip = document.getElementById("trig_a_tooltip_{{ device.id }}");
+
+                            console.log(JSON.stringify(response));
+                            if (response.error == 0)
+                                tooltip.innerHTML = "Triggered A";
+                            else
+                                tooltip.innerHTML = "Failed to trigger A";
+                        })
+                });
+                document.getElementById("trig_a_{{ device.id }}").addEventListener("mouseout", function() {
+                    var tooltip = document.getElementById("trig_a_tooltip_{{ device.id }}");
+                    tooltip.innerHTML = "Trigger A";
+                });
+
+                
+                document.getElementById("trig_b_{{ device.id }}").addEventListener("click", function() {
+                    fetch('/api/v1/trigger/{{ session.personal_key }}/{{ device.id }}/2', {})
+                        .then( response => response.json() )
+                        .then( response => {
+                            var tooltip = document.getElementById("trig_b_tooltip_{{ device.id }}");
+
+                            console.log(JSON.stringify(response));
+                            if (response.error == 0)
+                                tooltip.innerHTML = "Triggered B";
+                            else
+                                tooltip.innerHTML = "Failed to trigger B";
+                        })
+                });
+                document.getElementById("trig_b_{{ device.id }}").addEventListener("mouseout", function() {
+                    var tooltip = document.getElementById("trig_b_tooltip_{{ device.id }}");
+                    tooltip.innerHTML = "Trigger B";
+                });
+            {% endfor %}
+        </script>
 
     </body> 
 </html>
