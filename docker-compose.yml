@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+
+  web:
+    build: .
+    ports:
+      - 5000:5000
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: user
+      DB_PASS: password
+      DB_NAME: lovecube_db
+      SESSION_SECRET_KEY: supersecretkeywow
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mariadb:latest
+    restart: always
+    environment:
+      MARIADB_RANDOM_ROOT_PASSWORD: 1
+      MARIADB_USER: user
+      MARIADB_PASSWORD: password
+      MARIADB_DATABASE: lovecube_db
+    volumes:
+      - mysqldata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized"]
+      interval: 10s
+
+volumes:
+  mysqldata:

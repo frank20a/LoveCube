@@ -538,4 +538,8 @@ def unregister_device(api_key: str, device_id: str):
         
 
 if __name__ == '__main__':
-    app.run()
+    if online_flag:
+        from waitress import serve
+        serve(app, host='0.0.0.0', port=5000)
+    else:
+        app.run()

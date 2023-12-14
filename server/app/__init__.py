@@ -15,7 +15,9 @@ db_port = int(os.environ.get('DB_PORT') or 3306)
 db_user = os.environ.get('DB_USER') or 'root'
 db_pass = os.environ.get('DB_PASS') or 'root'
 db_name = os.environ.get('DB_NAME') or 'lovecube_db'
-path = '/home/frank20a/LoveCube/server' if online_flag else os.path.join(os.getcwd(), 'server')
+path = os.getcwd()
+if not online_flag:
+    path = os.path.join(path, 'server')
 
 # Create Flask app
 app = Flask(
